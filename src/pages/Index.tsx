@@ -232,7 +232,7 @@ const Index = () => {
                             />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-card border-primary/50">
+                        <TooltipContent side="bottom" className="bg-card border-primary/50 z-[100]">
                           <p className="text-sm font-medium">Предмет доступен в Донат магазине</p>
                         </TooltipContent>
                       </Tooltip>
