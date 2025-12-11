@@ -117,11 +117,13 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                <Icon name="Flame" size={24} className="text-background" />
-              </div>
+              <img 
+                src="https://gspics.org/images/2024/08/04/I8iUzy.png" 
+                alt="DevilRust Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" style={{ fontFamily: 'Nunito, sans-serif', fontStyle: 'italic' }}>
                   DevilRust
                 </h2>
                 <p className="text-xs text-muted-foreground">Wiki</p>
