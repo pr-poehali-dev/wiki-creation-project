@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import guidesData from '@/data/guides.json';
+
+interface GuideRating {
+  totalVotes: number;
+  totalStars: number;
+  averageRating: number;
+}
 
 interface GuideStep {
   stepNumber: number;
@@ -48,12 +54,81 @@ const guides: Guide[] = guidesData.guides;
 const categories: Category[] = guidesData.categories;
 const difficulties: Difficulty[] = guidesData.difficulty;
 
+const STORAGE_KEY = 'devilrust_guide_ratings';
+
 const Guides = () => {
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('popular');
+  const [guideRatings, setGuideRatings] = useState<Record<string, GuideRating>>({});
+  const [userVotes, setUserVotes] = useState<Record<string, number>>({});
+  const [hoveredStar, setHoveredStar] = useState<number>(0);
+
+  useEffect(() => {
+    const savedRatings = localStorage.getItem(STORAGE_KEY);
+    const savedUserVotes = localStorage.getItem(`${STORAGE_KEY}_user`);
+    if (savedRatings) {
+      setGuideRatings(JSON.parse(savedRatings));
+    }
+    if (savedUserVotes) {
+      setUserVotes(JSON.parse(savedUserVotes));
+    }
+  }, []);
+
+  const getGuideRating = (guideId: string): number => {
+    const rating = guideRatings[guideId];
+    if (!rating || rating.totalVotes === 0) {
+      return guides.find(g => g.id === guideId)?.rating || 0;
+    }
+    return rating.averageRating;
+  };
+
+  const getTotalVotes = (guideId: string): number => {
+    return guideRatings[guideId]?.totalVotes || 0;
+  };
+
+  const handleVote = (guideId: string, stars: number) => {
+    const currentRating = guideRatings[guideId] || {
+      totalVotes: 0,
+      totalStars: 0,
+      averageRating: guides.find(g => g.id === guideId)?.rating || 0
+    };
+
+    const previousVote = userVotes[guideId] || 0;
+    
+    let newTotalVotes = currentRating.totalVotes;
+    let newTotalStars = currentRating.totalStars;
+
+    if (previousVote > 0) {
+      newTotalStars -= previousVote;
+    } else {
+      newTotalVotes += 1;
+    }
+
+    newTotalStars += stars;
+    const newAverageRating = newTotalStars / newTotalVotes;
+
+    const updatedRatings = {
+      ...guideRatings,
+      [guideId]: {
+        totalVotes: newTotalVotes,
+        totalStars: newTotalStars,
+        averageRating: parseFloat(newAverageRating.toFixed(1))
+      }
+    };
+
+    const updatedUserVotes = {
+      ...userVotes,
+      [guideId]: stars
+    };
+
+    setGuideRatings(updatedRatings);
+    setUserVotes(updatedUserVotes);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedRatings));
+    localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(updatedUserVotes));
+  };
 
   const getDifficultyColor = (difficultyId: string) => {
     const difficulty = difficulties.find(d => d.id === difficultyId);
@@ -271,7 +346,10 @@ const Guides = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Icon name="Star" size={14} className="fill-yellow-500 text-yellow-500" />
-                        <span>{guide.rating}</span>
+                        <span>{getGuideRating(guide.id).toFixed(1)}</span>
+                        {getTotalVotes(guide.id) > 0 && (
+                          <span className="text-xs text-muted-foreground">({getTotalVotes(guide.id)})</span>
+                        )}
                       </div>
                     </div>
                     <Icon name="ArrowRight" size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -315,7 +393,10 @@ const Guides = () => {
                 </div>
                 <div className="flex items-center gap-1 text-sm">
                   <Icon name="Star" size={14} className="fill-yellow-500 text-yellow-500" />
-                  <span>{selectedGuide.rating}</span>
+                  <span>{getGuideRating(selectedGuide.id).toFixed(1)}</span>
+                  {getTotalVotes(selectedGuide.id) > 0 && (
+                    <span className="text-muted-foreground">({getTotalVotes(selectedGuide.id)} голосов)</span>
+                  )}
                 </div>
               </div>
               <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -324,6 +405,43 @@ const Guides = () => {
               <p className="text-muted-foreground text-lg mb-4">
                 {selectedGuide.description}
               </p>
+
+              <Card className="p-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20 mb-4">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="text-center md:text-left">
+                    <h3 className="font-semibold mb-1 flex items-center gap-2">
+                      <Icon name="Star" size={18} className="fill-yellow-500 text-yellow-500" />
+                      Оцените этот гайд
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userVotes[selectedGuide.id] 
+                        ? 'Вы уже оценили этот гайд. Можете изменить оценку.'
+                        : 'Помогите другим игрокам — поставьте оценку'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleVote(selectedGuide.id, star)}
+                        onMouseEnter={() => setHoveredStar(star)}
+                        onMouseLeave={() => setHoveredStar(0)}
+                        className="transition-all duration-200 hover:scale-110 active:scale-95"
+                      >
+                        <Icon
+                          name="Star"
+                          size={32}
+                          className={`transition-colors ${
+                            star <= (hoveredStar || userVotes[selectedGuide.id] || 0)
+                              ? 'fill-yellow-500 text-yellow-500'
+                              : 'text-muted-foreground'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </Card>
               
               {selectedGuide.requirements && selectedGuide.requirements.length > 0 && (
                 <Card className="p-4 bg-primary/5 border-primary/20">
