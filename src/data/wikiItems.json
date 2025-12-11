@@ -65,5 +65,13 @@
       "tags": ["Самогон", "меню"],
       "isDonateItem": false
     }
+    {
+      "id": "8",
+      "name": "12345",
+      "image": "https://s3.regru.cloud/img.devilrust/devilrust_priv_search.png",
+      "description": "123123123й248ц4егокы9шмплаз.",
+      "tags": ["тест", "меню"],
+      "isDonateItem": true
+    }
   ]
 }
