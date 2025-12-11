@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 interface WikiItem {
@@ -67,6 +68,19 @@ const wikiItems: WikiItem[] = [
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
@@ -99,6 +113,32 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                <Icon name="Flame" size={24} className="text-background" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  DevilRust
+                </h2>
+                <p className="text-xs text-muted-foreground">Wiki</p>
+              </div>
+            </div>
+            <Button
+              variant="default"
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => window.open('https://play.devilrust.ru', '_blank')}
+            >
+              <Icon name="ExternalLink" size={16} className="mr-2" />
+              Сайт
+            </Button>
+          </div>
+        </div>
+      </nav>
+
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-12 text-center fade-in">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -221,6 +261,16 @@ const Index = () => {
           </p>
         </footer>
       </div>
+
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          size="icon"
+          className="fixed bottom-8 right-8 w-12 h-12 rounded-full shadow-lg bg-primary hover:bg-primary/90 hover-scale z-50"
+        >
+          <Icon name="ArrowUp" size={24} />
+        </Button>
+      )}
     </div>
   );
 };
