@@ -173,7 +173,7 @@ const Index = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-help">
+                          <div className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-help z-10">
                             <Icon 
                               name="Star" 
                               size={32} 
@@ -181,7 +181,7 @@ const Index = () => {
                             />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-card border-primary/50 z-[100]">
+                        <TooltipContent side="bottom" className="bg-card border-primary/50 z-[9999]">
                           <p className="text-sm font-medium">Предмет доступен в Донат магазине</p>
                         </TooltipContent>
                       </Tooltip>
