@@ -1,10 +1,10 @@
 {
   "categories": [
     {
-      "id": "tp",
-      "name": "Телепорты",
-      "icon": "teleport",
-      "description": "Управление телепортацией"
+      "id": "inventory",
+      "name": "Инвентарь",
+      "icon": "Package",
+      "description": "Управление предметами и хранилищами"
     },
     {
       "id": "movement",
@@ -56,7 +56,7 @@
   ],
   "guides": [
     {
-      "id": "tp",
+      "id": "backpack-guide",
       "title": "Как использовать рюкзак",
       "description": "Пошаговая инструкция по использованию системы рюкзаков на сервере",
       "category": "inventory",
