@@ -3,6 +3,12 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import Icon from '@/components/ui/icon';
 
 interface WikiItem {
@@ -11,6 +17,7 @@ interface WikiItem {
   image: string;
   description: string;
   tags: string[];
+  isDonateItem?: boolean;
 }
 
 const wikiItems: WikiItem[] = [
@@ -19,14 +26,16 @@ const wikiItems: WikiItem[] = [
     name: 'Доп рюкзак',
     image: 'https://s3.regru.cloud/img.devilrust/devilrust_priv_back.png',
     description: 'Содержит от 6 - 144 слотов, возможно увеличить слоты прокачивая Престиж или купив Донат привилегию на сайте. Сохраняет в себе все содержимое, не очищается после смерти или глобальных вайпов, если у вас закончилась Донат привилегия, слоты останутся до того момента пока вы не откроете инвентарь рюкзака, после открытия все вещи перейдут к вам в инвентарь, а то что не влезло выпадет на землю и может быть удалено безвозвратно.',
-    tags: ['вайпов']
+    tags: ['вайпов'],
+    isDonateItem: true
   },
   {
     id: '2',
     name: 'Валюта DC',
     image: 'https://s3.regru.cloud/img.devilrust/devilrust_priv_valuta.png',
     description: 'Это самая ценная валюта на серверах. Добывается путем открытия GOLD SCRAP (золотого металлолома), найти который можно в потерянных контейнерах или купить в Донат магазине, применяется в кастомном крафте для создания уникальных предметов. Данная валюта синхронизируется со всеми PVE серверами, и ее можно добывать на одном сервере, а тратить на другом. Не очищается после вайпа.',
-    tags: ['GOLD SCRAP', 'потерянных контейнерах', 'кастомном крафте', 'вайпа']
+    tags: ['GOLD SCRAP', 'потерянных контейнерах', 'кастомном крафте', 'вайпа'],
+    isDonateItem: true
   },
   {
     id: '3',
@@ -211,6 +220,24 @@ const Index = () => {
                       target.src = '/placeholder.svg';
                     }}
                   />
+                  {item.isDonateItem && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-help">
+                            <Icon 
+                              name="Star" 
+                              size={32} 
+                              className="text-yellow-400 fill-yellow-400 animate-shimmer"
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="bg-card border-primary/50">
+                          <p className="text-sm font-medium">Предмет доступен в Донат магазине</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                   <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm px-3 py-1 rounded-full">
                     <span className="text-primary text-sm font-semibold">
                       {item.tags.length} тегов

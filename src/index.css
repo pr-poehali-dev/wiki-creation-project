@@ -78,4 +78,18 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes shimmer {
+    0%,
+    100% {
+      filter: brightness(1) drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+    }
+    50% {
+      filter: brightness(1.4) drop-shadow(0 0 12px rgba(250, 204, 21, 1));
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
+  }
 }
