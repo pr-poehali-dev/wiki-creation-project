@@ -55,6 +55,7 @@ const categories: Category[] = guidesData.categories;
 const difficulties: Difficulty[] = guidesData.difficulty;
 
 const STORAGE_KEY = 'devilrust_guide_ratings';
+const VIEWS_STORAGE_KEY = 'devilrust_guide_views';
 
 const Guides = () => {
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
@@ -65,17 +66,34 @@ const Guides = () => {
   const [guideRatings, setGuideRatings] = useState<Record<string, GuideRating>>({});
   const [userVotes, setUserVotes] = useState<Record<string, number>>({});
   const [hoveredStar, setHoveredStar] = useState<number>(0);
+  const [guideViews, setGuideViews] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const savedRatings = localStorage.getItem(STORAGE_KEY);
     const savedUserVotes = localStorage.getItem(`${STORAGE_KEY}_user`);
+    const savedViews = localStorage.getItem(VIEWS_STORAGE_KEY);
+    
     if (savedRatings) {
       setGuideRatings(JSON.parse(savedRatings));
     }
     if (savedUserVotes) {
       setUserVotes(JSON.parse(savedUserVotes));
     }
+    if (savedViews) {
+      setGuideViews(JSON.parse(savedViews));
+    }
   }, []);
+
+  useEffect(() => {
+    if (selectedGuide) {
+      const updatedViews = {
+        ...guideViews,
+        [selectedGuide.id]: (guideViews[selectedGuide.id] || 0) + 1
+      };
+      setGuideViews(updatedViews);
+      localStorage.setItem(VIEWS_STORAGE_KEY, JSON.stringify(updatedViews));
+    }
+  }, [selectedGuide?.id]);
 
   const getGuideRating = (guideId: string): number => {
     const rating = guideRatings[guideId];
@@ -87,6 +105,12 @@ const Guides = () => {
 
   const getTotalVotes = (guideId: string): number => {
     return guideRatings[guideId]?.totalVotes || 0;
+  };
+
+  const getGuideViews = (guideId: string): number => {
+    const baseViews = guides.find(g => g.id === guideId)?.views || 0;
+    const additionalViews = guideViews[guideId] || 0;
+    return baseViews + additionalViews;
   };
 
   const handleVote = (guideId: string, stars: number) => {
@@ -169,10 +193,10 @@ const Guides = () => {
 
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'popular':
-          return b.views - a.views;
+        case 'views':
+          return getGuideViews(b.id) - getGuideViews(a.id);
         case 'rating':
-          return b.rating - a.rating;
+          return getGuideRating(b.id) - getGuideRating(a.id);
         case 'title':
           return a.title.localeCompare(b.title);
         default:
@@ -181,7 +205,7 @@ const Guides = () => {
     });
 
     return filtered;
-  }, [searchQuery, selectedCategory, selectedDifficulty, sortBy]);
+  }, [searchQuery, selectedCategory, selectedDifficulty, sortBy, guideViews, guideRatings]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,7 +299,7 @@ const Guides = () => {
                     onChange={(e) => setSortBy(e.target.value)}
                     className="px-4 py-2 rounded-md border border-border bg-background text-sm"
                   >
-                    <option value="popular">Популярные</option>
+                    <option value="views">По просмотрам</option>
                     <option value="rating">По рейтингу</option>
                     <option value="title">По названию</option>
                   </select>
@@ -342,7 +366,7 @@ const Guides = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Icon name="Eye" size={14} />
-                        <span>{guide.views}</span>
+                        <span>{getGuideViews(guide.id)}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Icon name="Star" size={14} className="fill-yellow-500 text-yellow-500" />
@@ -389,7 +413,7 @@ const Guides = () => {
                 </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Icon name="Eye" size={14} />
-                  <span>{selectedGuide.views}</span>
+                  <span>{getGuideViews(selectedGuide.id)} просмотров</span>
                 </div>
                 <div className="flex items-center gap-1 text-sm">
                   <Icon name="Star" size={14} className="fill-yellow-500 text-yellow-500" />
