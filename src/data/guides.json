@@ -62,7 +62,7 @@
       "category": "inventory",
       "difficulty": "easy",
       "duration": "3 минуты",
-      "author": "Admin",
+      "author": "DevS",
       "views": 1823,
       "rating": 4.7,
       "tags": ["рюкзак", "инвентарь", "хранение"],
@@ -89,9 +89,7 @@
           "note": "VIP получает увеличенную вместимость рюкзака"
         }
       ],
-      "requirements": [
-        "Базовое понимание интерфейса"
-      ],
+      "requirements": ["Базовое понимание интерфейса"],
       "relatedGuides": ["kits-system", "economy-guide"]
     },
     {
@@ -101,7 +99,7 @@
       "category": "movement",
       "difficulty": "medium",
       "duration": "5 минут",
-      "author": "Admin",
+      "author": "DevS",
       "views": 2934,
       "rating": 4.8,
       "tags": ["телепорт", "команды", "перемещение"],
@@ -128,9 +126,7 @@
           "note": "VIP имеют сокращенное время кулдауна"
         }
       ],
-      "requirements": [
-        "Знание базовых команд чата"
-      ],
+      "requirements": ["Знание базовых команд чата"],
       "relatedGuides": ["clans-guide", "raid-protection"]
     },
     {
@@ -140,7 +136,7 @@
       "category": "economy",
       "difficulty": "medium",
       "duration": "8 минут",
-      "author": "EcoMaster",
+      "author": "DevS",
       "views": 3421,
       "rating": 4.6,
       "tags": ["экономика", "деньги", "магазин", "торговля"],
@@ -167,9 +163,7 @@
           "note": "Редкие предметы стоят дороже"
         }
       ],
-      "requirements": [
-        "Базовое понимание игровой экономики"
-      ],
+      "requirements": ["Базовое понимание игровой экономики"],
       "relatedGuides": ["kits-system", "backpack-guide"]
     },
     {
@@ -179,7 +173,7 @@
       "category": "building",
       "difficulty": "hard",
       "duration": "15 минут",
-      "author": "BuildPro",
+      "author": "DevS",
       "views": 5892,
       "rating": 4.9,
       "tags": ["база", "защита", "рейд", "строительство"],
@@ -227,7 +221,7 @@
       "category": "gameplay",
       "difficulty": "easy",
       "duration": "4 минуты",
-      "author": "Admin",
+      "author": "DevS",
       "views": 2156,
       "rating": 4.5,
       "tags": ["киты", "предметы", "команды"],
@@ -254,9 +248,7 @@
           "note": "Планируйте использование наборов заранее"
         }
       ],
-      "requirements": [
-        "Знание базовых команд"
-      ],
+      "requirements": ["Знание базовых команд"],
       "relatedGuides": ["backpack-guide", "economy-guide"]
     },
     {
@@ -266,7 +258,7 @@
       "category": "social",
       "difficulty": "medium",
       "duration": "10 минут",
-      "author": "ClanLeader",
+      "author": "DevS",
       "views": 4267,
       "rating": 4.8,
       "tags": ["клан", "команда", "социальное", "кооператив"],
