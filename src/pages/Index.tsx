@@ -157,9 +157,9 @@ const Index = () => {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className="overflow-hidden hover-scale fade-in bg-card border-border group cursor-pointer"
+                className="hover-scale fade-in bg-card border-border group cursor-pointer"
               >
-                <div className="aspect-video bg-muted relative overflow-hidden">
+                <div className="aspect-video bg-muted relative">
                   <img
                     src={item.image}
                     alt={item.name}
@@ -181,7 +181,7 @@ const Index = () => {
                             />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-card border-primary/50 z-[9999]">
+                        <TooltipContent side="right" className="bg-card border-primary/50 z-[9999]">
                           <p className="text-sm font-medium">Предмет доступен в Донат магазине</p>
                         </TooltipContent>
                       </Tooltip>
