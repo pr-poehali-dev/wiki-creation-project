@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -74,17 +75,31 @@ const Index = () => {
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <img 
-                src="https://s3.regru.cloud/img.devilrust/devilrust_logo.png" 
-                alt="DevilRust Logo" 
-                className="w-10 h-10 object-contain"
-              />
-              <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" style={{ fontFamily: 'Nunito, sans-serif', fontStyle: 'italic' }}>
-                  DevilRust
-                </h2>
-                <p className="text-xs text-muted-foreground">Wiki</p>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <img 
+                  src="https://s3.regru.cloud/img.devilrust/devilrust_logo.png" 
+                  alt="DevilRust Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+                <div>
+                  <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" style={{ fontFamily: 'Nunito, sans-serif', fontStyle: 'italic' }}>
+                    DevilRust
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Wiki</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="bg-primary/10">
+                  <Icon name="Home" size={16} className="mr-2" />
+                  Wiki
+                </Button>
+                <Link to="/guides">
+                  <Button variant="ghost" size="sm">
+                    <Icon name="BookOpen" size={16} className="mr-2" />
+                    Гайды
+                  </Button>
+                </Link>
               </div>
             </div>
             <Button
