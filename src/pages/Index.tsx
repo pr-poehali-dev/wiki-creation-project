@@ -226,7 +226,7 @@ const Index = () => {
                           className="bg-card border-primary/50 z-[9999]"
                         >
                           <p className="text-sm font-medium">
-                            Доступен к покупке в Донат магазине devilrust.ru
+                            Доступен в Донат магазине
                           </p>
                         </TooltipContent>
                       </Tooltip>
