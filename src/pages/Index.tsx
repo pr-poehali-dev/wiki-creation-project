@@ -76,7 +76,7 @@ const Index = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <img 
-                src="https://gspics.org/images/2024/08/04/I8iUzy.png" 
+                src="https://s3.regru.cloud/img.devilrust/devilrust_logo.png" 
                 alt="DevilRust Logo" 
                 className="w-10 h-10 object-contain"
               />
@@ -173,16 +173,22 @@ const Index = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-help z-10">
+                          <div 
+                            className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-pointer z-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open('https://devilrust.ru', '_blank');
+                            }}
+                          >
                             <Icon 
                               name="Star" 
                               size={32} 
-                              className="text-yellow-400 fill-yellow-400 animate-shimmer"
+                              className="text-yellow-400 fill-yellow-400 animate-shimmer hover:scale-110 transition-transform"
                             />
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="right" className="bg-card border-primary/50 z-[9999]">
-                          <p className="text-sm font-medium">Предмет доступен в Донат магазине</p>
+                          <p className="text-sm font-medium">Донат магазин на devilrust.ru</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
