@@ -1,17 +1,17 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import Icon from '@/components/ui/icon';
-import wikiData from '@/data/wikiItems.json';
+} from "@/components/ui/tooltip";
+import Icon from "@/components/ui/icon";
+import wikiData from "@/data/wikiItems.json";
 
 interface WikiItem {
   id: string;
@@ -25,7 +25,7 @@ interface WikiItem {
 const wikiItems: WikiItem[] = wikiData.предметы;
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -33,39 +33,44 @@ const Index = () => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    wikiItems.forEach(item => {
-      item.tags.forEach(tag => tags.add(tag));
+    wikiItems.forEach((item) => {
+      item.tags.forEach((tag) => tags.add(tag));
     });
     return Array.from(tags).sort();
   }, []);
 
   const filteredItems = useMemo(() => {
-    return wikiItems.filter(item => {
-      const matchesSearch = searchQuery === '' || 
+    return wikiItems.filter((item) => {
+      const matchesSearch =
+        searchQuery === "" ||
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesTag = selectedTag === null || item.tags.includes(selectedTag);
-      
+
+      const matchesTag =
+        selectedTag === null || item.tags.includes(selectedTag);
+
       return matchesSearch && matchesTag;
     });
   }, [searchQuery, selectedTag]);
 
   const highlightTags = (text: string) => {
     let result = text;
-    allTags.forEach(tag => {
-      const regex = new RegExp(`(${tag})`, 'gi');
-      result = result.replace(regex, '<span class="text-primary font-medium">$1</span>');
+    allTags.forEach((tag) => {
+      const regex = new RegExp(`(${tag})`, "gi");
+      result = result.replace(
+        regex,
+        '<span class="text-primary font-medium">$1</span>',
+      );
     });
     return result;
   };
@@ -77,13 +82,19 @@ const Index = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
-                <img 
-                  src="https://s3.regru.cloud/img.devilrust/devilrust_logo.png" 
-                  alt="DevilRust Logo" 
+                <img
+                  src="https://s3.regru.cloud/img.devilrust/devilrust_logo.png"
+                  alt="DevilRust Logo"
                   className="w-10 h-10 object-contain"
                 />
                 <div>
-                  <h2 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" style={{ fontFamily: 'Nunito, sans-serif', fontStyle: 'italic' }}>
+                  <h2
+                    className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                    style={{
+                      fontFamily: "Nunito, sans-serif",
+                      fontStyle: "italic",
+                    }}
+                  >
                     DevilRust
                   </h2>
                   <p className="text-xs text-muted-foreground">Wiki</p>
@@ -105,7 +116,7 @@ const Index = () => {
             <Button
               variant="default"
               className="bg-primary hover:bg-primary/90"
-              onClick={() => window.open('https://play.devilrust.ru', '_blank')}
+              onClick={() => window.open("https://play.devilrust.ru", "_blank")}
             >
               <Icon name="ExternalLink" size={16} className="mr-2" />
               Сайт
@@ -126,7 +137,11 @@ const Index = () => {
 
         <div className="mb-8 space-y-4 fade-in">
           <div className="relative">
-            <Icon name="Search" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            <Icon
+              name="Search"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={20}
+            />
             <Input
               type="text"
               placeholder="Поиск по названию или описанию..."
@@ -138,17 +153,17 @@ const Index = () => {
 
           <div className="flex flex-wrap gap-2">
             <Badge
-              variant={selectedTag === null ? 'default' : 'outline'}
+              variant={selectedTag === null ? "default" : "outline"}
               className="cursor-pointer hover-scale px-4 py-2"
               onClick={() => setSelectedTag(null)}
             >
               <Icon name="Layout" size={14} className="mr-1" />
               Все предметы
             </Badge>
-            {allTags.map(tag => (
+            {allTags.map((tag) => (
               <Badge
                 key={tag}
-                variant={selectedTag === tag ? 'default' : 'outline'}
+                variant={selectedTag === tag ? "default" : "outline"}
                 className="cursor-pointer hover-scale px-4 py-2"
                 onClick={() => setSelectedTag(tag)}
               >
@@ -161,7 +176,11 @@ const Index = () => {
 
         {filteredItems.length === 0 ? (
           <div className="text-center py-16 fade-in">
-            <Icon name="Search" size={64} className="mx-auto text-muted-foreground mb-4" />
+            <Icon
+              name="Search"
+              size={64}
+              className="mx-auto text-muted-foreground mb-4"
+            />
             <h3 className="text-2xl font-semibold mb-2">Ничего не найдено</h3>
             <p className="text-muted-foreground">
               Попробуйте изменить поисковый запрос или сбросить фильтры
@@ -181,29 +200,34 @@ const Index = () => {
                     className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 p-4"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder.svg';
+                      target.src = "/placeholder.svg";
                     }}
                   />
                   {item.isDonateItem && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div 
+                          <div
                             className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-pointer z-10"
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.open('https://devilrust.ru', '_blank');
+                              window.open("https://devilrust.ru", "_blank");
                             }}
                           >
-                            <Icon 
-                              name="Star" 
-                              size={32} 
+                            <Icon
+                              name="Star"
+                              size={32}
                               className="text-yellow-400 fill-yellow-400 animate-shimmer hover:scale-110 transition-transform"
                             />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="bg-card border-primary/50 z-[9999]">
-                          <p className="text-sm font-medium">Донат магазин на devilrust.ru</p>
+                        <TooltipContent
+                          side="right"
+                          className="bg-card border-primary/50 z-[9999]"
+                        >
+                          <p className="text-sm font-medium">
+                            Доступен к покупке в Донат магазине devilrust.ru
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -221,7 +245,7 @@ const Index = () => {
                   <p
                     className="text-muted-foreground text-sm leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: highlightTags(item.description)
+                      __html: highlightTags(item.description),
                     }}
                   />
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -256,7 +280,8 @@ const Index = () => {
             <span className="text-lg font-medium">DevilRust Wiki</span>
           </div>
           <p className="text-sm">
-            Всего предметов в базе: {wikiItems.length} • Отображается: {filteredItems.length}
+            Всего предметов в базе: {wikiItems.length} • Отображается:{" "}
+            {filteredItems.length}
           </p>
         </footer>
       </div>
