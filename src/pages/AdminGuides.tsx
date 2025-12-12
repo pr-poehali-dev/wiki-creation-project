@@ -111,15 +111,21 @@ const AdminGuides = () => {
 
     const token = localStorage.getItem("adminToken");
     const adminEmail = localStorage.getItem("adminEmail");
+    const adminNickname = localStorage.getItem("adminNickname") || adminEmail;
 
     try {
       const isNew = !editingGuide.id || editingGuide.id === "new";
       const url = GUIDES_URL;
       const method = isNew ? "POST" : "PUT";
 
+      const guideWithAuthor = {
+        ...editingGuide,
+        author: isNew ? adminNickname : editingGuide.author
+      };
+
       const body = isNew
-        ? { guide: editingGuide }
-        : { id: editingGuide.id, guide: editingGuide };
+        ? { guide: guideWithAuthor }
+        : { id: editingGuide.id, guide: guideWithAuthor };
 
       const response = await fetch(url, {
         method,

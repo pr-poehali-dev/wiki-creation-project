@@ -1,11 +1,11 @@
 {
   "tests": [
     {
-      "name": "Test auth with invalid email",
+      "name": "Test login with query param",
       "method": "POST",
-      "path": "/",
+      "path": "/?action=login",
       "body": {
-        "email": "hacker@example.com",
+        "email": "test@example.com",
         "password": "testpass123"
       },
       "expectedStatus": 403,
@@ -13,6 +13,12 @@
         "error": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
     }
   ]
 }

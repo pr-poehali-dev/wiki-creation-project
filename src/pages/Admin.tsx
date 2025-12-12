@@ -57,7 +57,7 @@ const Admin = () => {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const response = await fetch(AUTH_URL, {
+      const response = await fetch(`${AUTH_URL}?action=login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -67,12 +67,15 @@ const Admin = () => {
 
       if (response.ok && data.success) {
         localStorage.setItem("adminToken", data.token);
-        localStorage.setItem("adminEmail", email);
+        localStorage.setItem("adminEmail", data.email);
+        localStorage.setItem("adminNickname", data.nickname);
+        localStorage.setItem("adminRole", data.role);
         setIsAuthenticated(true);
+        setEmail(data.email);
         loadItems();
         toast({
           title: "Успешный вход",
-          description: "Добро пожаловать в админ-панель",
+          description: `Добро пожаловать, ${data.nickname}`,
         });
       } else {
         toast({
@@ -365,6 +368,12 @@ const Admin = () => {
                 <Icon name="BookOpen" size={16} className="mr-2" />
                 Гайды
               </Button>
+              {email.toLowerCase() === "ad.alex1995@yandex.ru" && (
+                <Button variant="outline" onClick={() => navigate("/admin/users")}>
+                  <Icon name="Users" size={16} className="mr-2" />
+                  Пользователи
+                </Button>
+              )}
               <Button variant="outline" onClick={() => navigate("/")}>
                 <Icon name="Home" size={16} className="mr-2" />
                 На главную
