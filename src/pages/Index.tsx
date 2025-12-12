@@ -59,21 +59,22 @@ const Index = () => {
     const loadItems = async () => {
       try {
         const response = await fetch(ITEMS_URL, {
-          cache: 'no-cache',
+          cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
             'Pragma': 'no-cache'
           }
         });
-        const data = await response.json();
-        if (data.items) {
-          setWikiItems(data.items);
-        } else {
-          setWikiItems(staticItems);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        setWikiItems(data.items || []);
       } catch (error) {
-        console.error("Failed to load items from API, using static data", error);
-        setWikiItems(staticItems);
+        console.error("Failed to load items from API", error);
+        setWikiItems([]);
       } finally {
         setLoading(false);
       }
@@ -89,16 +90,19 @@ const Index = () => {
     setLoading(true);
     try {
       const response = await fetch(ITEMS_URL, {
-        cache: 'no-cache',
+        cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
           'Pragma': 'no-cache'
         }
       });
-      const data = await response.json();
-      if (data.items) {
-        setWikiItems(data.items);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      const data = await response.json();
+      setWikiItems(data.items || []);
     } catch (error) {
       console.error("Failed to refresh items", error);
     } finally {

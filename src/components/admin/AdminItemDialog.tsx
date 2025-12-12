@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,9 +43,15 @@ const AdminItemDialog = ({
   onItemChange,
   onImageUpload,
 }: AdminItemDialogProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   if (!editingItem) return null;
 
   const isNew = !editingItem.id || editingItem.id === "new";
+  
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,22 +80,36 @@ const AdminItemDialog = ({
                 <img
                   src={editingItem.image}
                   alt="Preview"
-                  className="w-32 h-32 object-cover rounded-lg"
+                  className="w-32 h-32 object-cover rounded-lg border border-border"
                 />
               </div>
             )}
-            <Input
+            <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) onImageUpload(file);
+                if (file) {
+                  onImageUpload(file);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }
               }}
               disabled={uploading}
+              className="hidden"
             />
-            {uploading && (
-              <p className="text-sm text-muted-foreground mt-1">Загрузка...</p>
-            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFileSelect}
+              disabled={uploading}
+              className="w-full"
+            >
+              <Icon name="Upload" size={16} className="mr-2" />
+              {uploading ? "Загрузка..." : "Выбрать изображение"}
+            </Button>
           </div>
 
           <div>

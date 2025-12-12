@@ -78,33 +78,26 @@ const Guides = () => {
     const loadGuidesData = async () => {
       try {
         const response = await fetch(GUIDES_API_URL, {
-          cache: 'no-cache',
+          cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
             'Pragma': 'no-cache'
           }
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
-        if (data.guides) {
-          setGuides(data.guides);
-        } else {
-          setGuides(staticGuidesData.guides);
-        }
-        if (data.categories) {
-          setCategories(data.categories);
-        } else {
-          setCategories(staticGuidesData.categories);
-        }
-        if (data.difficulty) {
-          setDifficulties(data.difficulty);
-        } else {
-          setDifficulties(staticGuidesData.difficulty);
-        }
+        setGuides(data.guides || []);
+        setCategories(data.categories || []);
+        setDifficulties(data.difficulty || []);
       } catch (error) {
-        console.error("Failed to load guides from API, using static data", error);
-        setGuides(staticGuidesData.guides);
-        setCategories(staticGuidesData.categories);
-        setDifficulties(staticGuidesData.difficulty);
+        console.error("Failed to load guides from API", error);
+        setGuides([]);
+        setCategories([]);
+        setDifficulties([]);
       } finally {
         setLoading(false);
       }
