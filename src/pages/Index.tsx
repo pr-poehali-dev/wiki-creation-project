@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -28,6 +35,11 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem("favoriteItems");
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,19 +61,36 @@ const Index = () => {
     return Array.from(tags).sort();
   }, []);
 
+  const toggleFavorite = (itemId: string) => {
+    setFavorites((prev) => {
+      const newFavorites = prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId];
+      localStorage.setItem("favoriteItems", JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  };
+
   const filteredItems = useMemo(() => {
-    return wikiItems.filter((item) => {
+    const filtered = wikiItems.filter((item) => {
       const matchesSearch =
         searchQuery === "" ||
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase());
+        item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesTag =
         selectedTag === null || item.tags.includes(selectedTag);
 
       return matchesSearch && matchesTag;
     });
-  }, [searchQuery, selectedTag]);
+
+    return filtered.sort((a, b) => {
+      const aFav = favorites.includes(a.id);
+      const bFav = favorites.includes(b.id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+  }, [searchQuery, selectedTag, favorites]);
 
   const highlightTags = (text: string) => {
     let result = text;
@@ -144,7 +173,7 @@ const Index = () => {
             />
             <Input
               type="text"
-              placeholder="Поиск по названию или описанию..."
+              placeholder="Поиск по названию..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 py-6 text-lg bg-card border-border"
@@ -187,87 +216,57 @@ const Index = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className="hover-scale fade-in bg-card border-border group cursor-pointer"
+                className="hover-scale fade-in bg-card border-border group cursor-pointer relative overflow-hidden"
+                onClick={() => setSelectedItem(item)}
               >
-                <div className="aspect-video bg-muted relative">
+                <div
+                  className="absolute top-2 right-2 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(item.id);
+                  }}
+                >
+                  <Icon
+                    name="Heart"
+                    size={24}
+                    className={`transition-all ${
+                      favorites.includes(item.id)
+                        ? "text-red-500 fill-red-500"
+                        : "text-muted-foreground hover:text-red-400"
+                    }`}
+                  />
+                </div>
+
+                {item.isDonateItem && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <Icon
+                      name="Star"
+                      size={24}
+                      className="text-yellow-400 fill-yellow-400 animate-shimmer"
+                    />
+                  </div>
+                )}
+
+                <div className="aspect-square bg-muted/30 p-4">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 p-4"
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "/placeholder.svg";
                     }}
                   />
-                  {item.isDonateItem && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute top-2 left-2 w-10 h-10 flex items-center justify-center cursor-pointer z-10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open("https://devilrust.ru", "_blank");
-                            }}
-                          >
-                            <Icon
-                              name="Star"
-                              size={32}
-                              className="text-yellow-400 fill-yellow-400 animate-shimmer hover:scale-110 transition-transform"
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          className="bg-card border-primary/50 z-[9999]"
-                        >
-                          <p className="text-sm font-medium">
-                            Доступен в Донат магазине
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  <div className="absolute top-2 right-2 bg-primary/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                    <span className="text-primary text-sm font-semibold">
-                      {item.tags.length} тегов
-                    </span>
-                  </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">
+
+                <div className="p-3">
+                  <h3 className="text-sm font-semibold text-center line-clamp-2 group-hover:text-primary transition-colors">
                     {item.name}
                   </h3>
-                  <p
-                    className="text-muted-foreground text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{
-                      __html: highlightTags(item.description),
-                    }}
-                  />
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {item.tags.slice(0, 3).map((tag, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="secondary"
-                        className="text-xs cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTag(tag);
-                        }}
-                      >
-                        #{tag}
-                      </Badge>
-                    ))}
-                    {item.tags.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{item.tags.length - 3}
-                      </Badge>
-                    )}
-                  </div>
                 </div>
               </Card>
             ))}
@@ -295,6 +294,106 @@ const Index = () => {
           <Icon name="ArrowUp" size={24} />
         </Button>
       )}
+
+      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {selectedItem && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center justify-between gap-4">
+                  <DialogTitle className="text-2xl font-bold">
+                    {selectedItem.name}
+                  </DialogTitle>
+                  <div className="flex items-center gap-2">
+                    {selectedItem.isDonateItem && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              className="cursor-pointer"
+                              onClick={() =>
+                                window.open("https://devilrust.ru", "_blank")
+                              }
+                            >
+                              <Icon
+                                name="Star"
+                                size={28}
+                                className="text-yellow-400 fill-yellow-400 animate-shimmer hover:scale-110 transition-transform"
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">Донат предмет</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleFavorite(selectedItem.id)}
+                    >
+                      <Icon
+                        name="Heart"
+                        size={24}
+                        className={`transition-all ${
+                          favorites.includes(selectedItem.id)
+                            ? "text-red-500 fill-red-500"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    </Button>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                <div className="bg-muted/30 rounded-lg p-6">
+                  <img
+                    src={selectedItem.image}
+                    alt={selectedItem.name}
+                    className="w-full max-h-64 object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/placeholder.svg";
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-2">Описание</h4>
+                  <DialogDescription
+                    className="text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: highlightTags(selectedItem.description),
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold mb-3">Теги</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedItem.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary/20 transition-colors"
+                        onClick={() => {
+                          setSelectedTag(tag);
+                          setSelectedItem(null);
+                        }}
+                      >
+                        <Icon name="Hash" size={14} className="mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
