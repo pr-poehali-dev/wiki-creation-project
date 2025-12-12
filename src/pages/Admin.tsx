@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const AUTH_URL = "https://functions.poehali.dev/f8032a9b-c0f1-4d7f-bf5d-77772b746142";
 const ITEMS_URL = "https://functions.poehali.dev/d71663e0-8d00-4215-9220-87036ef43d4f";
-const UPLOAD_URL = "https://functions.poehali.dev/96940da6-959d-442b-a300-ef169354071d";
+const GUIDES_URL = "https://functions.poehali.dev/ac785d0b-f5b2-4d87-9032-4d3b73bda057";
 
 interface WikiItem {
   id: string;
@@ -220,7 +220,7 @@ const Admin = () => {
       reader.onload = async () => {
         const base64Data = reader.result as string;
 
-        const response = await fetch(UPLOAD_URL, {
+        const response = await fetch(`${GUIDES_URL}?action=upload`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -230,6 +230,7 @@ const Admin = () => {
           body: JSON.stringify({
             image: base64Data,
             filename: file.name,
+            folder: "wiki-items",
           }),
         });
 
@@ -359,6 +360,10 @@ const Admin = () => {
               <Badge variant="secondary">{email}</Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => navigate("/admin/guides")}>
+                <Icon name="BookOpen" size={16} className="mr-2" />
+                Гайды
+              </Button>
               <Button variant="outline" onClick={() => navigate("/")}>
                 <Icon name="Home" size={16} className="mr-2" />
                 На главную

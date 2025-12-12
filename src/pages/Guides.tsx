@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import guidesData from '@/data/guides.json';
+import staticGuidesData from '@/data/guides.json';
+
+const GUIDES_API_URL = "https://functions.poehali.dev/ac785d0b-f5b2-4d87-9032-4d3b73bda057";
 
 interface GuideRating {
   totalVotes: number;
@@ -50,14 +52,14 @@ interface Difficulty {
   color: string;
 }
 
-const guides: Guide[] = guidesData.guides;
-const categories: Category[] = guidesData.categories;
-const difficulties: Difficulty[] = guidesData.difficulty;
-
 const STORAGE_KEY = 'devilrust_guide_ratings';
 const VIEWS_STORAGE_KEY = 'devilrust_guide_views';
 
 const Guides = () => {
+  const [guides, setGuides] = useState<Guide[]>(staticGuidesData.guides);
+  const [categories, setCategories] = useState<Category[]>(staticGuidesData.categories);
+  const [difficulties, setDifficulties] = useState<Difficulty[]>(staticGuidesData.difficulty);
+  const [loading, setLoading] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -69,6 +71,28 @@ const Guides = () => {
   const [guideViews, setGuideViews] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    const loadGuidesData = async () => {
+      try {
+        const response = await fetch(GUIDES_API_URL);
+        const data = await response.json();
+        if (data.guides) {
+          setGuides(data.guides);
+        }
+        if (data.categories) {
+          setCategories(data.categories);
+        }
+        if (data.difficulty) {
+          setDifficulties(data.difficulty);
+        }
+      } catch (error) {
+        console.error("Failed to load guides from API, using static data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGuidesData();
+
     const savedRatings = localStorage.getItem(STORAGE_KEY);
     const savedUserVotes = localStorage.getItem(`${STORAGE_KEY}_user`);
     const savedViews = localStorage.getItem(VIEWS_STORAGE_KEY);
@@ -205,7 +229,7 @@ const Guides = () => {
     });
 
     return filtered;
-  }, [searchQuery, selectedCategory, selectedDifficulty, sortBy, guideViews, guideRatings]);
+  }, [searchQuery, selectedCategory, selectedDifficulty, sortBy, guideViews, guideRatings, guides]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,14 +263,37 @@ const Guides = () => {
                 </Button>
               </div>
             </div>
-            <Button
-              variant="default"
-              className="bg-primary hover:bg-primary/90"
-              onClick={() => window.open('https://play.devilrust.ru', '_blank')}
-            >
-              <Icon name="ExternalLink" size={16} className="mr-2" />
-              Сайт
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const response = await fetch(GUIDES_API_URL);
+                    const data = await response.json();
+                    if (data.guides) setGuides(data.guides);
+                    if (data.categories) setCategories(data.categories);
+                    if (data.difficulty) setDifficulties(data.difficulty);
+                  } catch (error) {
+                    console.error("Failed to refresh guides", error);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+              >
+                <Icon name={loading ? "Loader2" : "RefreshCw"} size={16} className={loading ? "animate-spin" : ""} />
+              </Button>
+              <Button
+                variant="default"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => window.open('https://play.devilrust.ru', '_blank')}
+              >
+                <Icon name="ExternalLink" size={16} className="mr-2" />
+                Сайт
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
