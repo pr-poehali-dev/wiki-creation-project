@@ -39,7 +39,7 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>(staticItems);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favoriteItems");
@@ -57,13 +57,22 @@ const Index = () => {
   useEffect(() => {
     const loadItems = async () => {
       try {
-        const response = await fetch(ITEMS_URL);
+        const response = await fetch(ITEMS_URL, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         const data = await response.json();
         if (data.items) {
           setWikiItems(data.items);
+        } else {
+          setWikiItems(staticItems);
         }
       } catch (error) {
         console.error("Failed to load items from API, using static data", error);
+        setWikiItems(staticItems);
       } finally {
         setLoading(false);
       }
@@ -78,7 +87,13 @@ const Index = () => {
   const refreshItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch(ITEMS_URL);
+      const response = await fetch(ITEMS_URL, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       const data = await response.json();
       if (data.items) {
         setWikiItems(data.items);

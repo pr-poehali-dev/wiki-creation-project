@@ -59,9 +59,9 @@ const STORAGE_KEY = 'devilrust_guide_ratings';
 const VIEWS_STORAGE_KEY = 'devilrust_guide_views';
 
 const Guides = () => {
-  const [guides, setGuides] = useState<Guide[]>(staticGuidesData.guides);
-  const [categories, setCategories] = useState<Category[]>(staticGuidesData.categories);
-  const [difficulties, setDifficulties] = useState<Difficulty[]>(staticGuidesData.difficulty);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,19 +76,34 @@ const Guides = () => {
   useEffect(() => {
     const loadGuidesData = async () => {
       try {
-        const response = await fetch(GUIDES_API_URL);
+        const response = await fetch(GUIDES_API_URL, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         const data = await response.json();
         if (data.guides) {
           setGuides(data.guides);
+        } else {
+          setGuides(staticGuidesData.guides);
         }
         if (data.categories) {
           setCategories(data.categories);
+        } else {
+          setCategories(staticGuidesData.categories);
         }
         if (data.difficulty) {
           setDifficulties(data.difficulty);
+        } else {
+          setDifficulties(staticGuidesData.difficulty);
         }
       } catch (error) {
         console.error("Failed to load guides from API, using static data", error);
+        setGuides(staticGuidesData.guides);
+        setCategories(staticGuidesData.categories);
+        setDifficulties(staticGuidesData.difficulty);
       } finally {
         setLoading(false);
       }
