@@ -69,6 +69,8 @@ const AdminGuides = () => {
   const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
   const [editingGuide, setEditingGuide] = useState<Guide | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
+  const [isDifficultiesDialogOpen, setIsDifficultiesDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [email, setEmail] = useState("");
   const { toast } = useToast();
@@ -325,6 +327,133 @@ const AdminGuides = () => {
     navigate("/admin");
   };
 
+  const handleSaveCategories = async () => {
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    try {
+      const response = await fetch(GUIDES_URL, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": token || "",
+          "X-Admin-Email": adminEmail || "",
+        },
+        body: JSON.stringify({
+          type: "categories",
+          categories: categories,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Успех",
+          description: "Категории обновлены",
+        });
+        setIsCategoriesDialogOpen(false);
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error || "Не удалось обновить категории",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить категории",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveDifficulties = async () => {
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    try {
+      const response = await fetch(GUIDES_URL, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": token || "",
+          "X-Admin-Email": adminEmail || "",
+        },
+        body: JSON.stringify({
+          type: "difficulties",
+          difficulties: difficulties,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Успех",
+          description: "Уровни сложности обновлены",
+        });
+        setIsDifficultiesDialogOpen(false);
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error || "Не удалось обновить уровни сложности",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обновить уровни сложности",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addCategory = () => {
+    setCategories([
+      ...categories,
+      {
+        id: `cat-${Date.now()}`,
+        name: "",
+        icon: "Star",
+        description: "",
+      },
+    ]);
+  };
+
+  const removeCategory = (id: string) => {
+    setCategories(categories.filter((c) => c.id !== id));
+  };
+
+  const updateCategory = (id: string, field: keyof Category, value: string) => {
+    setCategories(
+      categories.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const addDifficulty = () => {
+    setDifficulties([
+      ...difficulties,
+      {
+        id: `diff-${Date.now()}`,
+        name: "",
+        color: "#3b82f6",
+      },
+    ]);
+  };
+
+  const removeDifficulty = (id: string) => {
+    setDifficulties(difficulties.filter((d) => d.id !== id));
+  };
+
+  const updateDifficulty = (id: string, field: keyof Difficulty, value: string) => {
+    setDifficulties(
+      difficulties.map((d) => (d.id === id ? { ...d, [field]: value } : d))
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -356,10 +485,20 @@ const AdminGuides = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold">Управление гайдами</h2>
-          <Button onClick={() => openEditDialog(null)}>
-            <Icon name="Plus" size={16} className="mr-2" />
-            Добавить гайд
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsCategoriesDialogOpen(true)}>
+              <Icon name="Folder" size={16} className="mr-2" />
+              Категории
+            </Button>
+            <Button variant="outline" onClick={() => setIsDifficultiesDialogOpen(true)}>
+              <Icon name="Target" size={16} className="mr-2" />
+              Сложность
+            </Button>
+            <Button onClick={() => openEditDialog(null)}>
+              <Icon name="Plus" size={16} className="mr-2" />
+              Добавить гайд
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -608,6 +747,145 @@ const AdminGuides = () => {
               Отмена
             </Button>
             <Button onClick={handleSaveGuide}>
+              <Icon name="Save" size={16} className="mr-2" />
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCategoriesDialogOpen} onOpenChange={setIsCategoriesDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Редактирование категорий</DialogTitle>
+            <DialogDescription>
+              Управление категориями для гайдов
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {categories.map((category, index) => (
+              <Card key={category.id}>
+                <CardContent className="pt-6 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-3">
+                      <Input
+                        value={category.id}
+                        onChange={(e) => updateCategory(category.id, "id", e.target.value)}
+                        placeholder="ID категории (например: building)"
+                      />
+                      <Input
+                        value={category.name}
+                        onChange={(e) => updateCategory(category.id, "name", e.target.value)}
+                        placeholder="Название категории"
+                      />
+                      <Input
+                        value={category.icon}
+                        onChange={(e) => updateCategory(category.id, "icon", e.target.value)}
+                        placeholder="Иконка (lucide-react)"
+                      />
+                      <Textarea
+                        value={category.description}
+                        onChange={(e) => updateCategory(category.id, "description", e.target.value)}
+                        placeholder="Описание категории"
+                        rows={2}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCategory(category.id)}
+                    >
+                      <Icon name="X" size={16} />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            <Button type="button" variant="outline" onClick={addCategory} className="w-full">
+              <Icon name="Plus" size={16} className="mr-2" />
+              Добавить категорию
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCategoriesDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSaveCategories}>
+              <Icon name="Save" size={16} className="mr-2" />
+              Сохранить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDifficultiesDialogOpen} onOpenChange={setIsDifficultiesDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Редактирование уровней сложности</DialogTitle>
+            <DialogDescription>
+              Управление уровнями сложности для гайдов
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {difficulties.map((difficulty, index) => (
+              <Card key={difficulty.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-3">
+                      <Input
+                        value={difficulty.id}
+                        onChange={(e) => updateDifficulty(difficulty.id, "id", e.target.value)}
+                        placeholder="ID сложности (например: easy)"
+                      />
+                      <Input
+                        value={difficulty.name}
+                        onChange={(e) => updateDifficulty(difficulty.id, "name", e.target.value)}
+                        placeholder="Название"
+                      />
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="color"
+                          value={difficulty.color}
+                          onChange={(e) => updateDifficulty(difficulty.id, "color", e.target.value)}
+                          className="w-20 h-10"
+                        />
+                        <Input
+                          value={difficulty.color}
+                          onChange={(e) => updateDifficulty(difficulty.id, "color", e.target.value)}
+                          placeholder="#22c55e"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeDifficulty(difficulty.id)}
+                    >
+                      <Icon name="X" size={16} />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            <Button type="button" variant="outline" onClick={addDifficulty} className="w-full">
+              <Icon name="Plus" size={16} className="mr-2" />
+              Добавить уровень сложности
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDifficultiesDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSaveDifficulties}>
               <Icon name="Save" size={16} className="mr-2" />
               Сохранить
             </Button>

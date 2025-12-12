@@ -74,7 +74,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token, X-Admin-Email',
                 'Access-Control-Max-Age': '86400'
             },
@@ -105,9 +105,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    body_data = json.loads(event.get('body', '{}'))
+    
+    # PATCH - обновление категорий или сложностей
+    if method == 'PATCH':
+        data = load_guides_data()
+        update_type = body_data.get('type')  # 'categories' или 'difficulties'
+        
+        if update_type == 'categories':
+            data['categories'] = body_data.get('categories', [])
+        elif update_type == 'difficulties':
+            data['difficulty'] = body_data.get('difficulties', [])
+        else:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Invalid update type'}),
+                'isBase64Encoded': False
+            }
+        
+        save_guides_data(data)
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'success': True}),
+            'isBase64Encoded': False
+        }
+    
     data = load_guides_data()
     guides = data.get('guides', [])
-    body_data = json.loads(event.get('body', '{}'))
     
     if method == 'POST':
         # Если action=upload, загружаем изображение
