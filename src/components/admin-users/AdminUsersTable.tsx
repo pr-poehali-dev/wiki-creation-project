@@ -50,10 +50,10 @@ const AdminUsersTable = ({
 
   if (!isSuperAdmin) {
     return (
-      <Card className="bg-white/10 backdrop-blur-sm border-purple-500/20">
+      <Card className="bg-white/10 backdrop-blur-sm border-red-500/20">
         <CardHeader>
           <CardTitle className="text-white">Доступ ограничен</CardTitle>
-          <CardDescription className="text-purple-300">
+          <CardDescription className="text-orange-300">
             Только главный администратор может управлять пользователями
           </CardDescription>
         </CardHeader>
@@ -70,10 +70,10 @@ const AdminUsersTable = ({
   }
 
   return (
-    <Card className="bg-white/10 backdrop-blur-sm border-purple-500/20">
+    <Card className="bg-white/10 backdrop-blur-sm border-red-500/20">
       <CardHeader>
         <CardTitle className="text-white">Список администраторов</CardTitle>
-        <CardDescription className="text-purple-300">
+        <CardDescription className="text-orange-300">
           Всего пользователей: {users.length}
         </CardDescription>
       </CardHeader>
@@ -81,12 +81,12 @@ const AdminUsersTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-purple-200">Email</TableHead>
-              <TableHead className="text-purple-200">Никнейм</TableHead>
-              <TableHead className="text-purple-200">Роль</TableHead>
-              <TableHead className="text-purple-200">Создан</TableHead>
-              <TableHead className="text-purple-200">Истекает</TableHead>
-              <TableHead className="text-purple-200">Действия</TableHead>
+              <TableHead className="text-orange-200">Email</TableHead>
+              <TableHead className="text-orange-200">Никнейм</TableHead>
+              <TableHead className="text-orange-200">Роль</TableHead>
+              <TableHead className="text-orange-200">Создан</TableHead>
+              <TableHead className="text-orange-200">Истекает</TableHead>
+              <TableHead className="text-orange-200">Действия</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,13 +103,13 @@ const AdminUsersTable = ({
                       {user.role === "super_admin" ? "Супер-админ" : "Админ"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-purple-300">
+                  <TableCell className="text-orange-300">
                     {formatDate(user.created_at)}
                   </TableCell>
                   <TableCell>
                     {user.expires_at ? (
                       <div className="flex items-center gap-2">
-                        <span className={isExpired ? "text-red-400" : "text-purple-300"}>
+                        <span className={isExpired ? "text-red-400" : "text-orange-300"}>
                           {formatDate(user.expires_at)}
                         </span>
                         {timeLeft && (
@@ -132,7 +132,7 @@ const AdminUsersTable = ({
                             size="sm"
                             variant="ghost"
                             onClick={() => onEdit(user)}
-                            className="text-white hover:bg-purple-600"
+                            className="text-white hover:bg-red-600"
                           >
                             <Icon name="Pencil" size={16} />
                           </Button>

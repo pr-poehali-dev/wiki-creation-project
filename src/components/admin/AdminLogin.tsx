@@ -60,14 +60,14 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-      <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-purple-500/20">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 p-4">
+      <Card className="w-full max-w-md bg-white/10 backdrop-blur-sm border-red-500/20">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <Icon name="Shield" size={48} className="text-purple-400" />
+            <Icon name="Shield" size={48} className="text-red-400" />
           </div>
           <CardTitle className="text-2xl text-center text-white">Вход в админ-панель</CardTitle>
-          <CardDescription className="text-center text-purple-300">
+          <CardDescription className="text-center text-orange-300">
             Введите свои учетные данные для доступа
           </CardDescription>
         </CardHeader>
@@ -80,7 +80,7 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-purple-200">Email</Label>
+              <Label htmlFor="email" className="text-orange-200">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -88,11 +88,11 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-slate-800 border-purple-500 text-white placeholder:text-purple-400"
+                className="bg-slate-800 border-red-500 text-white placeholder:text-orange-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-purple-200">Пароль</Label>
+              <Label htmlFor="password" className="text-orange-200">Пароль</Label>
               <Input
                 id="password"
                 type="password"
@@ -100,12 +100,12 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-slate-800 border-purple-500 text-white placeholder:text-purple-400"
+                className="bg-slate-800 border-red-500 text-white placeholder:text-orange-400"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700"
+              className="w-full bg-red-600 hover:bg-red-700"
               disabled={loading}
             >
               {loading ? (

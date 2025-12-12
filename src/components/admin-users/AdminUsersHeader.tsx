@@ -25,18 +25,18 @@ const AdminUsersHeader = ({
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-white">Управление пользователями</h1>
-          <p className="text-purple-300 mt-1">
+          <p className="text-orange-300 mt-1">
             Вы вошли как: {currentUser?.nickname} ({currentUser?.email})
           </p>
         </div>
       </div>
       <div className="flex gap-2">
-        <Button onClick={onOpenProfile} variant="outline" className="text-purple-900">
+        <Button onClick={onOpenProfile} variant="outline" className="text-orange-900">
           <Icon name="User" size={18} className="mr-2" />
           Мой профиль
         </Button>
         {isSuperAdmin && (
-          <Button onClick={onOpenCreate} className="bg-purple-600 hover:bg-purple-700">
+          <Button onClick={onOpenCreate} className="bg-red-600 hover:bg-red-700">
             <Icon name="Plus" size={18} className="mr-2" />
             Добавить пользователя
           </Button>

@@ -47,33 +47,33 @@ const UserDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-slate-900 text-white border-purple-500">
+      <DialogContent className="bg-slate-900 text-white border-red-500">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Редактировать пользователя" : "Создать пользователя"}
           </DialogTitle>
-          <DialogDescription className="text-purple-300">
+          <DialogDescription className="text-orange-300">
             Заполните данные нового администратора
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <Label className="text-purple-200">Email</Label>
+            <Label className="text-orange-200">Email</Label>
             <Input
               type="email"
               value={editingUser?.email || ""}
               onChange={(e) => onUserChange({ ...editingUser, email: e.target.value })}
               disabled={!!isEditing}
-              className="bg-slate-800 border-purple-500 text-white"
+              className="bg-slate-800 border-red-500 text-white"
               placeholder="admin@example.com"
             />
           </div>
           <div>
-            <Label className="text-purple-200">Никнейм</Label>
+            <Label className="text-orange-200">Никнейм</Label>
             <Input
               value={editingUser?.nickname || ""}
               onChange={(e) => onUserChange({ ...editingUser, nickname: e.target.value })}
-              className="bg-slate-800 border-purple-500 text-white"
+              className="bg-slate-800 border-red-500 text-white"
               placeholder="Admin"
             />
           </div>
@@ -85,7 +85,7 @@ const UserDialog = ({
               type="password"
               value={newPassword}
               onChange={(e) => onPasswordChange(e.target.value)}
-              className="bg-slate-800 border-purple-500 text-white"
+              className="bg-slate-800 border-red-500 text-white"
               placeholder="••••••••"
             />
           </div>
@@ -95,10 +95,10 @@ const UserDialog = ({
               type="number"
               value={expiresInDays || ""}
               onChange={(e) => onExpiresChange(e.target.value ? parseInt(e.target.value) : null)}
-              className="bg-slate-800 border-purple-500 text-white"
+              className="bg-slate-800 border-red-500 text-white"
               placeholder="Оставьте пустым для бессрочного доступа"
             />
-            <p className="text-sm text-purple-400 mt-1">
+            <p className="text-sm text-orange-400 mt-1">
               Например: 7 = доступ на неделю, 30 = на месяц
             </p>
           </div>
@@ -107,7 +107,7 @@ const UserDialog = ({
           <Button variant="ghost" onClick={onClose}>
             Отмена
           </Button>
-          <Button onClick={onSave} className="bg-purple-600 hover:bg-purple-700">
+          <Button onClick={onSave} className="bg-red-600 hover:bg-red-700">
             {isEditing ? "Обновить" : "Создать"}
           </Button>
         </DialogFooter>
