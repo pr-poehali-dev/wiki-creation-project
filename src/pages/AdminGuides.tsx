@@ -23,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { API_URLS } from "@/config/api";
 
-const GUIDES_URL = "https://functions.poehali.dev/ac785d0b-f5b2-4d87-9032-4d3b73bda057";
+const GUIDES_URL = API_URLS.GUIDES;
 
 interface GuideStep {
   stepNumber: number;

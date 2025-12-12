@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import staticGuidesData from '@/data/guides.json';
+import { API_URLS } from '@/config/api';
 
-const GUIDES_API_URL = "https://functions.poehali.dev/ac785d0b-f5b2-4d87-9032-4d3b73bda057";
+const GUIDES_API_URL = API_URLS.GUIDES;
 
 interface GuideRating {
   totalVotes: number;

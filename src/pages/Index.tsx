@@ -19,8 +19,9 @@ import {
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
 import wikiData from "@/data/wikiItems.json";
+import { API_URLS } from "@/config/api";
 
-const ITEMS_URL = "https://functions.poehali.dev/d71663e0-8d00-4215-9220-87036ef43d4f";
+const ITEMS_URL = API_URLS.ITEMS;
 
 interface WikiItem {
   id: string;
