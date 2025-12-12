@@ -29,9 +29,12 @@ def load_items() -> List[Dict]:
         response = s3.get_object(Bucket='files', Key=ITEMS_FILE_KEY)
         data = json.loads(response['Body'].read().decode('utf-8'))
         return data.get('предметы', [])
-    except s3.exceptions.NoSuchKey:
-        return []
-    except Exception:
+    except:
+        # Если файла нет, создаём пустой и возвращаем []
+        try:
+            save_items([])
+        except:
+            pass
         return []
 
 def save_items(items: List[Dict]) -> None:

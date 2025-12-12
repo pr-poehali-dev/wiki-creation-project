@@ -20,6 +20,8 @@ import {
 import Icon from "@/components/ui/icon";
 import wikiData from "@/data/wikiItems.json";
 
+const ITEMS_URL = "https://functions.poehali.dev/d71663e0-8d00-4215-9220-87036ef43d4f";
+
 interface WikiItem {
   id: string;
   name: string;
@@ -29,13 +31,15 @@ interface WikiItem {
   isDonateItem?: boolean;
 }
 
-const wikiItems: WikiItem[] = wikiData.предметы;
+const staticItems: WikiItem[] = wikiData.предметы;
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>(staticItems);
+  const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favoriteItems");
     return saved ? JSON.parse(saved) : [];
@@ -47,6 +51,23 @@ const Index = () => {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        const response = await fetch(ITEMS_URL);
+        const data = await response.json();
+        if (data.items && data.items.length > 0) {
+          setWikiItems(data.items);
+        }
+      } catch (error) {
+        console.error("Failed to load items from API, using static data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadItems();
   }, []);
 
   const scrollToTop = () => {
@@ -203,7 +224,16 @@ const Index = () => {
           </div>
         </div>
 
-        {filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-16 fade-in">
+            <Icon
+              name="Loader2"
+              size={64}
+              className="mx-auto text-primary mb-4 animate-spin"
+            />
+            <h3 className="text-2xl font-semibold mb-2">Загрузка предметов...</h3>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="text-center py-16 fade-in">
             <Icon
               name="Search"
