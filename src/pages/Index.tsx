@@ -58,7 +58,7 @@ const Index = () => {
       try {
         const response = await fetch(ITEMS_URL);
         const data = await response.json();
-        if (data.items && data.items.length > 0) {
+        if (data.items) {
           setWikiItems(data.items);
         }
       } catch (error) {
@@ -74,13 +74,28 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const refreshItems = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(ITEMS_URL);
+      const data = await response.json();
+      if (data.items) {
+        setWikiItems(data.items);
+      }
+    } catch (error) {
+      console.error("Failed to refresh items", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const allTags = useMemo(() => {
     const tags = new Set<string>();
     wikiItems.forEach((item) => {
       item.tags.forEach((tag) => tags.add(tag));
     });
     return Array.from(tags).sort();
-  }, []);
+  }, [wikiItems]);
 
   const toggleFavorite = (itemId: string) => {
     setFavorites((prev) => {
@@ -163,14 +178,24 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-            <Button
-              variant="default"
-              className="bg-primary hover:bg-primary/90"
-              onClick={() => window.open("https://play.devilrust.ru", "_blank")}
-            >
-              <Icon name="ExternalLink" size={16} className="mr-2" />
-              Сайт
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshItems}
+                disabled={loading}
+              >
+                <Icon name={loading ? "Loader2" : "RefreshCw"} size={16} className={loading ? "animate-spin" : ""} />
+              </Button>
+              <Button
+                variant="default"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => window.open("https://play.devilrust.ru", "_blank")}
+              >
+                <Icon name="ExternalLink" size={16} className="mr-2" />
+                Сайт
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
