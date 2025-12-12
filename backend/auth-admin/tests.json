@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Test auth with invalid email",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "hacker@example.com",
+        "password": "testpass123"
+      },
+      "expectedStatus": 403,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
