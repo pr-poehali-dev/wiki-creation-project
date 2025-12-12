@@ -31,6 +31,7 @@ interface GuideStep {
   title: string;
   description: string;
   image: string;
+  video?: string;
   note?: string;
 }
 
@@ -48,6 +49,7 @@ interface Guide {
   steps: GuideStep[];
   requirements?: string[];
   relatedGuides?: string[];
+  type?: 'text' | 'video';
 }
 
 interface Category {
@@ -266,6 +268,75 @@ const AdminGuides = () => {
     }
   };
 
+  const handleVideoUpload = async (file: File, stepIndex: number) => {
+    if (!file) return;
+
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+
+        const response = await fetch(`${GUIDES_URL}?action=upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Token": token || "",
+            "X-Admin-Email": adminEmail || "",
+          },
+          body: JSON.stringify({
+            image: base64Data,
+            filename: file.name,
+            folder: "guides/videos",
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          if (editingGuide) {
+            const updatedSteps = [...editingGuide.steps];
+            updatedSteps[stepIndex].video = data.url;
+            setEditingGuide({ ...editingGuide, steps: updatedSteps });
+          }
+          toast({
+            title: "Успех",
+            description: "Видео загружено",
+          });
+        } else {
+          toast({
+            title: "Ошибка",
+            description: data.error || "Не удалось загрузить видео",
+            variant: "destructive",
+          });
+        }
+        setUploading(false);
+      };
+
+      reader.onerror = () => {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось прочитать файл",
+          variant: "destructive",
+        });
+        setUploading(false);
+      };
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить видео",
+        variant: "destructive",
+      });
+      setUploading(false);
+    }
+  };
+
   const openEditDialog = (guide: Guide | null) => {
     if (guide) {
       setEditingGuide({ ...guide });
@@ -284,6 +355,7 @@ const AdminGuides = () => {
         steps: [],
         requirements: [],
         relatedGuides: [],
+        type: "text",
       });
     }
     setIsDialogOpen(true);
@@ -296,6 +368,7 @@ const AdminGuides = () => {
       title: "",
       description: "",
       image: "",
+      video: "",
       note: "",
     };
     setEditingGuide({
@@ -507,8 +580,15 @@ const AdminGuides = () => {
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <CardTitle className="text-lg">{guide.title}</CardTitle>
-                    <div className="flex gap-2 mt-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CardTitle className="text-lg">{guide.title}</CardTitle>
+                      {guide.type === "video" ? (
+                        <Icon name="Video" size={18} className="text-primary" />
+                      ) : (
+                        <Icon name="FileText" size={18} className="text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex gap-2">
                       <Badge variant="secondary">{guide.category}</Badge>
                       <Badge variant="outline">{guide.difficulty}</Badge>
                     </div>
@@ -561,7 +641,7 @@ const AdminGuides = () => {
 
           {editingGuide && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Название</Label>
                   <Input
@@ -584,6 +664,34 @@ const AdminGuides = () => {
                     }
                     placeholder="5-10 минут"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Тип гайда</Label>
+                  <Select
+                    value={editingGuide.type || "text"}
+                    onValueChange={(value: "text" | "video") =>
+                      setEditingGuide({ ...editingGuide, type: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите тип" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">
+                        <span className="flex items-center gap-2">
+                          <Icon name="FileText" size={14} />
+                          Текстовый
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="video">
+                        <span className="flex items-center gap-2">
+                          <Icon name="Video" size={14} />
+                          Видео
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -724,7 +832,37 @@ const AdminGuides = () => {
                           }}
                         >
                           <Icon
-                            name={uploading ? "Loader2" : "Upload"}
+                            name={uploading ? "Loader2" : "Image"}
+                            size={14}
+                            className={uploading ? "animate-spin" : ""}
+                          />
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={step.video || ""}
+                          onChange={(e) => updateStep(index, "video", e.target.value)}
+                          placeholder="URL видео (необязательно)"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={uploading}
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "video/mp4,video/webm,video/quicktime";
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0];
+                              if (file) handleVideoUpload(file, index);
+                            };
+                            input.click();
+                          }}
+                        >
+                          <Icon
+                            name={uploading ? "Loader2" : "Video"}
                             size={14}
                             className={uploading ? "animate-spin" : ""}
                           />

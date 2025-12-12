@@ -156,7 +156,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             image_data = base64.b64decode(base64_data)
             file_ext = filename.split('.')[-1].lower()
-            if file_ext not in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+            if file_ext not in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'mov']:
                 file_ext = 'png'
             
             content_type_map = {
@@ -164,7 +164,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'jpg': 'image/jpeg',
                 'jpeg': 'image/jpeg',
                 'gif': 'image/gif',
-                'webp': 'image/webp'
+                'webp': 'image/webp',
+                'mp4': 'video/mp4',
+                'webm': 'video/webm',
+                'mov': 'video/quicktime'
             }
             content_type = content_type_map.get(file_ext, 'image/png')
             unique_filename = f"{folder}/{uuid.uuid4()}.{file_ext}"

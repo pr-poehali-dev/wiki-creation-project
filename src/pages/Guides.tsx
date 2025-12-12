@@ -20,6 +20,7 @@ interface GuideStep {
   title: string;
   description: string;
   image: string;
+  video?: string;
   note?: string;
 }
 
@@ -37,6 +38,7 @@ interface Guide {
   steps: GuideStep[];
   requirements?: string[];
   relatedGuides?: string[];
+  type?: 'text' | 'video';
 }
 
 interface Category {
@@ -383,10 +385,18 @@ const Guides = () => {
                 >
                   <div className="mb-4">
                     <div className="flex items-start justify-between mb-3">
-                      <Badge variant="outline" className="text-xs">
-                        <Icon name={getCategoryIcon(guide.category)} size={12} className="mr-1" />
-                        {getCategoryName(guide.category)}
-                      </Badge>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          <Icon name={getCategoryIcon(guide.category)} size={12} className="mr-1" />
+                          {getCategoryName(guide.category)}
+                        </Badge>
+                        {guide.type === "video" && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Icon name="Video" size={12} className="mr-1" />
+                            Видео
+                          </Badge>
+                        )}
+                      </div>
                       <Badge variant="outline" className={`text-xs ${getDifficultyColor(guide.difficulty)}`}>
                         {getDifficultyName(guide.difficulty)}
                       </Badge>
@@ -558,7 +568,19 @@ const Guides = () => {
                       </div>
                     </div>
                   </div>
-                  {step.image && (
+                  {step.video && (
+                    <div className="border-t border-border">
+                      <video 
+                        src={step.video}
+                        controls
+                        className="w-full h-auto"
+                        preload="metadata"
+                      >
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    </div>
+                  )}
+                  {step.image && !step.video && (
                     <div className="border-t border-border">
                       <img 
                         src={step.image}
