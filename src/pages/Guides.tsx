@@ -303,10 +303,10 @@ const Guides = () => {
           <>
             <header className="mb-8 text-center fade-in">
               <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {guidesData.pageSettings.title}
+                {staticGuidesData.pageSettings.title}
               </h1>
               <p className="text-muted-foreground text-lg">
-                {guidesData.pageSettings.subtitle}
+                {staticGuidesData.pageSettings.subtitle}
               </p>
             </header>
 
