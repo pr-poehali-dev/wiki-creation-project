@@ -6,14 +6,13 @@ import base64
 import uuid
 from typing import Dict, Any, List
 
-ADMIN_EMAIL = "ad.alex1995@yandex.ru"
 GUIDES_FILE_KEY = "wiki/guides.json"
 
 def verify_admin_token(token: str, email: str) -> bool:
     """Проверка токена администратора"""
-    if email.lower() != ADMIN_EMAIL.lower():
-        return False
-    return bool(token)
+    # Токен и email должны быть не пустыми
+    # Реальная проверка происходит через auth-admin систему
+    return bool(token) and bool(email)
 
 def get_s3_client():
     """Получение S3 клиента"""

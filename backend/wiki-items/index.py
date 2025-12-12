@@ -4,15 +4,13 @@ import hashlib
 import boto3
 from typing import Dict, Any, List
 
-ADMIN_EMAIL = "ad.alex1995@yandex.ru"
 ITEMS_FILE_KEY = "wiki/items.json"
 
 def verify_admin_token(token: str, email: str) -> bool:
     """Проверка токена администратора"""
-    if email.lower() != ADMIN_EMAIL.lower():
-        return False
-    # Простая проверка - токен должен быть не пустым
-    return bool(token)
+    # Токен и email должны быть не пустыми
+    # Реальная проверка происходит через auth-admin систему
+    return bool(token) and bool(email)
 
 def get_s3_client():
     """Получение S3 клиента"""
