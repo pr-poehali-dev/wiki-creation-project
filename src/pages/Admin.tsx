@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const AUTH_URL = "https://functions.poehali.dev/f8032a9b-c0f1-4d7f-bf5d-77772b746142";
 const ITEMS_URL = "https://functions.poehali.dev/d71663e0-8d00-4215-9220-87036ef43d4f";
+const UPLOAD_URL = "https://functions.poehali.dev/96940da6-959d-442b-a300-ef169354071d";
 
 interface WikiItem {
   id: string;
@@ -38,6 +39,7 @@ const Admin = () => {
   const [items, setItems] = useState<WikiItem[]>([]);
   const [editingItem, setEditingItem] = useState<WikiItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -200,6 +202,73 @@ const Admin = () => {
     localStorage.removeItem("adminEmail");
     setIsAuthenticated(false);
     navigate("/");
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    setUploading(true);
+
+    try {
+      // Конвертируем файл в base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+
+        const response = await fetch(UPLOAD_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Token": token || "",
+            "X-Admin-Email": adminEmail || "",
+          },
+          body: JSON.stringify({
+            image: base64Data,
+            filename: file.name,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          if (editingItem) {
+            setEditingItem({ ...editingItem, image: data.url });
+          }
+          toast({
+            title: "Успех",
+            description: "Изображение загружено",
+          });
+        } else {
+          toast({
+            title: "Ошибка",
+            description: data.error || "Не удалось загрузить изображение",
+            variant: "destructive",
+          });
+        }
+        setUploading(false);
+      };
+
+      reader.onerror = () => {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось прочитать файл",
+          variant: "destructive",
+        });
+        setUploading(false);
+      };
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить изображение",
+        variant: "destructive",
+      });
+      setUploading(false);
+    }
   };
 
   const openEditDialog = (item: WikiItem | null) => {
@@ -400,21 +469,44 @@ const Admin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">URL изображения</Label>
-                <Input
-                  id="image"
-                  value={editingItem.image}
-                  onChange={(e) =>
-                    setEditingItem({ ...editingItem, image: e.target.value })
-                  }
-                  placeholder="https://example.com/image.png"
-                />
-                {editingItem.image && (
-                  <img
-                    src={editingItem.image}
-                    alt="Preview"
-                    className="w-32 h-32 object-contain border rounded"
+                <Label htmlFor="image">Изображение</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="image"
+                    value={editingItem.image}
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, image: e.target.value })
+                    }
+                    placeholder="https://example.com/image.png"
+                    className="flex-1"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={uploading}
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) handleImageUpload(file);
+                      };
+                      input.click();
+                    }}
+                  >
+                    <Icon name={uploading ? "Loader2" : "Upload"} size={16} className={uploading ? "mr-2 animate-spin" : "mr-2"} />
+                    {uploading ? "Загрузка..." : "Загрузить"}
+                  </Button>
+                </div>
+                {editingItem.image && (
+                  <div className="bg-muted/30 p-4 rounded-lg">
+                    <img
+                      src={editingItem.image}
+                      alt="Preview"
+                      className="w-32 h-32 object-contain mx-auto"
+                    />
+                  </div>
                 )}
               </div>
 

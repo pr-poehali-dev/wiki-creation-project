@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Test unauthorized upload",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "test",
+        "filename": "test.png"
+      },
+      "expectedStatus": 403,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
