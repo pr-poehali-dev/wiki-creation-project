@@ -126,7 +126,7 @@ const Index = () => {
       if (!aFav && bFav) return 1;
       return 0;
     });
-  }, [searchQuery, selectedTag, favorites]);
+  }, [searchQuery, selectedTag, favorites, wikiItems]);
 
   const highlightTags = (text: string) => {
     let result = text;
