@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import staticGuidesData from '@/data/guides.json';
 import { API_URLS } from '@/config/api';
 
 const GUIDES_API_URL = API_URLS.GUIDES;
@@ -417,7 +416,13 @@ const Guides = () => {
               </div>
             </div>
 
-            {filteredAndSortedGuides.length === 0 ? (
+            {guides.length === 0 ? (
+              <div className="text-center py-12">
+                <Icon name="BookOpen" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-semibold mb-2">Гайды не добавлены</h3>
+                <p className="text-muted-foreground">Добавьте гайды через админ-панель</p>
+              </div>
+            ) : filteredAndSortedGuides.length === 0 ? (
               <div className="text-center py-12">
                 <Icon name="Search" size={48} className="mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground">Гайды не найдены</p>

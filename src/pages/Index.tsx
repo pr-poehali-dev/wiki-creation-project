@@ -18,7 +18,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
-import wikiData from "@/data/wikiItems.json";
 import { API_URLS } from "@/config/api";
 
 const ITEMS_URL = API_URLS.ITEMS;
@@ -31,8 +30,6 @@ interface WikiItem {
   tags: string[];
   isDonateItem?: boolean;
 }
-
-const staticItems: WikiItem[] = wikiData.предметы;
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -315,6 +312,18 @@ const Index = () => {
               className="mx-auto text-primary mb-4 animate-spin"
             />
             <h3 className="text-2xl font-semibold mb-2">Загрузка предметов...</h3>
+          </div>
+        ) : wikiItems.length === 0 ? (
+          <div className="text-center py-16 fade-in">
+            <Icon
+              name="Package"
+              size={64}
+              className="mx-auto text-muted-foreground mb-4"
+            />
+            <h3 className="text-2xl font-semibold mb-2">Предметы не добавлены</h3>
+            <p className="text-muted-foreground">
+              Добавьте предметы через админ-панель
+            </p>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-16 fade-in">

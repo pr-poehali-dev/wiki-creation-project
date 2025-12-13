@@ -26,7 +26,7 @@ def load_items() -> List[Dict]:
         s3 = get_s3_client()
         response = s3.get_object(Bucket='files', Key=ITEMS_FILE_KEY)
         data = json.loads(response['Body'].read().decode('utf-8'))
-        return data.get('предметы', [])
+        return data.get('items', [])
     except:
         # Если файла нет, создаём пустой и возвращаем []
         try:
@@ -39,8 +39,7 @@ def save_items(items: List[Dict]) -> None:
     """Сохранение предметов в S3"""
     s3 = get_s3_client()
     data = {
-        "описание": "Файл с предметами Wiki",
-        "предметы": items
+        "items": items
     }
     s3.put_object(
         Bucket='files',
