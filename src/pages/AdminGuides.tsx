@@ -508,7 +508,7 @@ const AdminGuides = () => {
               Создавайте и редактируйте гайды
             </p>
           </div>
-        <div className="flex gap-2">
+          <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => setIsCategoriesDialogOpen(true)}
@@ -1037,6 +1037,7 @@ const AdminGuides = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };
