@@ -17,10 +17,9 @@ interface AdminItemsListProps {
   onEdit: (item: WikiItem) => void;
   onCreate: () => void;
   onDelete: (itemId: string) => void;
-  onRestore?: () => void;
 }
 
-const AdminItemsList = ({ items, onEdit, onCreate, onDelete, onRestore }: AdminItemsListProps) => {
+const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListProps) => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -28,18 +27,10 @@ const AdminItemsList = ({ items, onEdit, onCreate, onDelete, onRestore }: AdminI
           <h2 className="text-2xl font-bold">Управление предметами Wiki</h2>
           <p className="text-muted-foreground">Всего предметов: {items.length}</p>
         </div>
-        <div className="flex gap-2">
-          {onRestore && (
-            <Button variant="outline" onClick={onRestore}>
-              <Icon name="RefreshCw" size={16} className="mr-2" />
-              Восстановить данные
-            </Button>
-          )}
-          <Button onClick={onCreate}>
-            <Icon name="Plus" size={16} className="mr-2" />
-            Добавить предмет
-          </Button>
-        </div>
+        <Button onClick={onCreate}>
+          <Icon name="Plus" size={16} className="mr-2" />
+          Добавить предмет
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

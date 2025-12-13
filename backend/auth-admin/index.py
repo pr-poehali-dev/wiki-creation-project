@@ -84,7 +84,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     POST /users - создать пользователя (только супер-админ)
     PUT /users - обновить пользователя (супер-админ или сам себя)
     DELETE /users - удалить пользователя (только супер-админ)
-    Version: 1.1
     """
     method: str = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}

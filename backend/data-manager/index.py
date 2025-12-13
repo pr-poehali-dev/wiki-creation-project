@@ -5,28 +5,10 @@ from typing import Dict, Any
 
 ITEMS_FILE_KEY = "wiki/items.json"
 GUIDES_FILE_KEY = "wiki/guides.json"
-USERS_FILE_KEY = "admin/users.json"
-
-def get_users_data() -> Dict:
-    """Загрузка данных пользователей из S3 для проверки"""
-    try:
-        s3 = get_s3_client()
-        response = s3.get_object(Bucket='files', Key=USERS_FILE_KEY)
-        data = json.loads(response['Body'].read().decode('utf-8'))
-        return data
-    except:
-        return {"users": []}
 
 def verify_admin_token(token: str, email: str) -> bool:
-    """Проверка токена администратора через список пользователей"""
-    if not token or not email:
-        return False
-    
-    users_data = get_users_data()
-    for user in users_data.get('users', []):
-        if user.get('email', '').lower() == email.lower():
-            return True
-    return False
+    """Проверка токена администратора"""
+    return bool(token) and bool(email)
 
 def get_s3_client():
     """Получение S3 клиента"""
@@ -43,13 +25,11 @@ def load_from_s3(file_key: str, default_data: Dict) -> Dict:
         response = s3.get_object(Bucket='files', Key=file_key)
         data = json.loads(response['Body'].read().decode('utf-8'))
         return data
-    except Exception as e:
-        print(f"Error loading from S3: {e}, creating default data")
+    except:
         try:
             save_to_s3(file_key, default_data)
-            print(f"Successfully saved default data to {file_key}")
-        except Exception as save_error:
-            print(f"Error saving default data: {save_error}")
+        except:
+            pass
         return default_data
 
 def save_to_s3(file_key: str, data: Dict) -> None:
@@ -62,38 +42,11 @@ def save_to_s3(file_key: str, data: Dict) -> None:
         ContentType='application/json'
     )
 
-def validate_items_data(data: Dict) -> bool:
-    """Валидация данных предметов"""
-    if 'предметы' not in data:
-        return False
-    items = data['предметы']
-    if not isinstance(items, list):
-        return False
-    for item in items:
-        if not isinstance(item, dict):
-            return False
-        required_fields = ['id', 'name', 'description', 'tags']
-        for field in required_fields:
-            if field not in item:
-                return False
-    return True
-
-def validate_guides_data(data: Dict) -> bool:
-    """Валидация данных гайдов"""
-    required_keys = ['categories', 'difficulty', 'guides', 'pageSettings']
-    for key in required_keys:
-        if key not in data:
-            return False
-    if not isinstance(data['guides'], list):
-        return False
-    return True
-
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Управление данными в S3
     GET ?type=items|guides - получить данные
     POST ?type=items|guides - обновить данные
-    Version: 1.1
     """
     method: str = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}
@@ -115,26 +68,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Определяем файл и default данные
     if data_type == 'items':
         file_key = ITEMS_FILE_KEY
-        default_data = {
-            "предметы": [
-                {
-                    "id": "1",
-                    "name": "Деревянный топор",
-                    "image": "https://cdn.poehali.dev/projects/YCAJEeOKFaYpKF5keSU8a/bucket/wiki-items/wooden-axe.png",
-                    "description": "Базовый инструмент для добычи дерева. Можно создать из камня и палок.",
-                    "tags": ["инструмент", "начальный"],
-                    "isDonateItem": false
-                },
-                {
-                    "id": "2",
-                    "name": "Каменная кирка",
-                    "image": "https://cdn.poehali.dev/projects/YCAJEeOKFaYpKF5keSU8a/bucket/wiki-items/stone-pickaxe.png",
-                    "description": "Инструмент для добычи руды и камня.",
-                    "tags": ["инструмент", "добыча"],
-                    "isDonateItem": false
-                }
-            ]
-        }
+        default_data = {"предметы": []}
     elif data_type == 'guides':
         file_key = GUIDES_FILE_KEY
         default_data = {
@@ -183,24 +117,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         body_data = json.loads(event.get('body', '{}'))
-        
-        # Валидация данных
-        if data_type == 'items':
-            if not validate_items_data(body_data):
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Invalid items data structure'}),
-                    'isBase64Encoded': False
-                }
-        elif data_type == 'guides':
-            if not validate_guides_data(body_data):
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Invalid guides data structure'}),
-                    'isBase64Encoded': False
-                }
         
         # Сохраняем данные в S3
         try:

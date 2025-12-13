@@ -43,22 +43,9 @@ const Index = () => {
   useEffect(() => {
     const loadItems = async () => {
       try {
-        console.log('Загружаю предметы с:', `${DATA_MANAGER_URL}?type=items`);
         const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
-        console.log('Ответ сервера:', response.status, response.statusText);
-        
-        if (!response.ok) {
-          console.error('Server error:', response.status);
-          setWikiItems(wikiDataFallback.предметы || []);
-          setLoading(false);
-          return;
-        }
-        
         const data = await response.json();
-        console.log('Получены данные:', data);
-        const items = data.предметы || data.items || [];
-        console.log('Установлено предметов:', items.length);
-        setWikiItems(items.length > 0 ? items : wikiDataFallback.предметы || []);
+        setWikiItems(data.предметы || wikiDataFallback.предметы || []);
       } catch (error) {
         console.error('Failed to load items', error);
         setWikiItems(wikiDataFallback.предметы || []);
@@ -76,19 +63,9 @@ const Index = () => {
   const refreshItems = async () => {
     setLoading(true);
     try {
-      console.log('Обновляю предметы...');
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
-      
-      if (!response.ok) {
-        console.error('Server error during refresh:', response.status);
-        setLoading(false);
-        return;
-      }
-      
       const data = await response.json();
-      console.log('Обновлены данные:', data);
-      const items = data.предметы || data.items || [];
-      setWikiItems(items.length > 0 ? items : wikiDataFallback.предметы || []);
+      setWikiItems(data.предметы || wikiDataFallback.предметы || []);
     } catch (error) {
       console.error('Failed to refresh items', error);
     } finally {

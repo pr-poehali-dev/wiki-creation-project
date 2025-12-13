@@ -55,7 +55,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     POST - создать предмет
     PUT - обновить предмет
     DELETE - удалить предмет
-    Version: 1.1
     """
     method: str = event.get('httpMethod', 'GET')
     

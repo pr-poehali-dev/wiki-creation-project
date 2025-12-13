@@ -64,47 +64,6 @@ const Admin = () => {
     navigate("/");
   };
 
-  const handleRestoreData = async () => {
-    if (!confirm("Вы уверены что хотите восстановить данные из резервной копии? Текущие данные будут перезаписаны.")) return;
-
-    const token = localStorage.getItem("adminToken");
-    const adminEmail = localStorage.getItem("adminEmail");
-
-    try {
-      const response = await fetch(`${DATA_MANAGER_URL}?type=items`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Token": token || "",
-          "X-Admin-Email": adminEmail || "",
-        },
-        body: JSON.stringify(wikiItemsData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast({
-          title: "Успех",
-          description: "Данные восстановлены из резервной копии",
-        });
-        loadItems();
-      } else {
-        toast({
-          title: "Ошибка",
-          description: data.error || "Не удалось восстановить данные",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось восстановить данные",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleSaveItem = async () => {
     if (!editingItem) return;
 
@@ -306,7 +265,6 @@ const Admin = () => {
         onEdit={openEditDialog}
         onCreate={() => openEditDialog(null)}
         onDelete={handleDeleteItem}
-        onRestore={handleRestoreData}
       />
 
       <AdminItemDialog
