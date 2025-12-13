@@ -351,10 +351,10 @@ const Guides = () => {
           <>
             <header className="mb-8 text-center fade-in">
               <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {staticGuidesData.pageSettings.title}
+                Гайды DevilRust
               </h1>
               <p className="text-muted-foreground text-lg">
-                {staticGuidesData.pageSettings.subtitle}
+                Подробные руководства и инструкции по игре
               </p>
             </header>
 
