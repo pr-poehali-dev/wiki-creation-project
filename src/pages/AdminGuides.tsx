@@ -108,6 +108,47 @@ const AdminGuides = () => {
     }
   };
 
+  const handleRestoreGuides = async () => {
+    if (!confirm("Вы уверены что хотите восстановить гайды из резервной копии? Текущие данные будут перезаписаны.")) return;
+
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    try {
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": token || "",
+          "X-Admin-Email": adminEmail || "",
+        },
+        body: JSON.stringify(guidesData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Успех",
+          description: "Гайды восстановлены из резервной копии",
+        });
+        loadGuides();
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error || "Не удалось восстановить гайды",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось восстановить гайды",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveGuide = async () => {
     if (!editingGuide) return;
 
@@ -509,6 +550,13 @@ const AdminGuides = () => {
             </p>
           </div>
           <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleRestoreGuides}
+          >
+            <Icon name="RefreshCw" className="mr-2 h-4 w-4" />
+            Восстановить данные
+          </Button>
           <Button
             variant="outline"
             onClick={() => setIsCategoriesDialogOpen(true)}

@@ -5,10 +5,28 @@ from typing import Dict, Any
 
 ITEMS_FILE_KEY = "wiki/items.json"
 GUIDES_FILE_KEY = "wiki/guides.json"
+USERS_FILE_KEY = "admin/users.json"
+
+def get_users_data() -> Dict:
+    """Загрузка данных пользователей из S3 для проверки"""
+    try:
+        s3 = get_s3_client()
+        response = s3.get_object(Bucket='files', Key=USERS_FILE_KEY)
+        data = json.loads(response['Body'].read().decode('utf-8'))
+        return data
+    except:
+        return {"users": []}
 
 def verify_admin_token(token: str, email: str) -> bool:
-    """Проверка токена администратора"""
-    return bool(token) and bool(email)
+    """Проверка токена администратора через список пользователей"""
+    if not token or not email:
+        return False
+    
+    users_data = get_users_data()
+    for user in users_data.get('users', []):
+        if user.get('email', '').lower() == email.lower():
+            return True
+    return False
 
 def get_s3_client():
     """Получение S3 клиента"""
@@ -41,6 +59,32 @@ def save_to_s3(file_key: str, data: Dict) -> None:
         Body=json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8'),
         ContentType='application/json'
     )
+
+def validate_items_data(data: Dict) -> bool:
+    """Валидация данных предметов"""
+    if 'предметы' not in data:
+        return False
+    items = data['предметы']
+    if not isinstance(items, list):
+        return False
+    for item in items:
+        if not isinstance(item, dict):
+            return False
+        required_fields = ['id', 'name', 'description', 'tags']
+        for field in required_fields:
+            if field not in item:
+                return False
+    return True
+
+def validate_guides_data(data: Dict) -> bool:
+    """Валидация данных гайдов"""
+    required_keys = ['categories', 'difficulty', 'guides', 'pageSettings']
+    for key in required_keys:
+        if key not in data:
+            return False
+    if not isinstance(data['guides'], list):
+        return False
+    return True
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -117,6 +161,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         body_data = json.loads(event.get('body', '{}'))
+        
+        # Валидация данных
+        if data_type == 'items':
+            if not validate_items_data(body_data):
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Invalid items data structure'}),
+                    'isBase64Encoded': False
+                }
+        elif data_type == 'guides':
+            if not validate_guides_data(body_data):
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Invalid guides data structure'}),
+                    'isBase64Encoded': False
+                }
         
         # Сохраняем данные в S3
         try:
