@@ -1,4 +1,10 @@
 import { Card } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
 
 interface WikiItem {
@@ -99,13 +105,22 @@ const WikiItemsGrid = ({
           </div>
 
           {item.isDonateItem && (
-            <div className="absolute top-2 left-2 z-10">
-              <Icon
-                name="Star"
-                size={24}
-                className="text-yellow-400 fill-yellow-400 animate-shimmer"
-              />
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="absolute top-2 left-2 z-10">
+                    <Icon
+                      name="Star"
+                      size={24}
+                      className="text-yellow-400 fill-yellow-400 animate-shimmer"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm">Донат предмет</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
 
           <div className="aspect-square bg-muted/30 p-4">
