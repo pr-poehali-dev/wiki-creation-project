@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import { API_URLS } from '@/config/api';
-
-const GUIDES_API_URL = API_URLS.GUIDES;
+import guidesData from '@/data/guides.json';
 
 interface GuideRating {
   totalVotes: number;
@@ -58,10 +56,10 @@ const STORAGE_KEY = 'devilrust_guide_ratings';
 const VIEWS_STORAGE_KEY = 'devilrust_guide_views';
 
 const Guides = () => {
-  const [guides, setGuides] = useState<Guide[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [guides, setGuides] = useState<Guide[]>(guidesData.guides || []);
+  const [categories, setCategories] = useState<Category[]>(guidesData.categories || []);
+  const [difficulties, setDifficulties] = useState<Difficulty[]>(guidesData.difficulty || []);
+  const [loading, setLoading] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -74,35 +72,10 @@ const Guides = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const loadGuidesData = async () => {
-      try {
-        const response = await fetch(GUIDES_API_URL, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setGuides(data.guides || []);
-        setCategories(data.categories || []);
-        setDifficulties(data.difficulty || []);
-      } catch (error) {
-        console.error("Failed to load guides from API", error);
-        setGuides([]);
-        setCategories([]);
-        setDifficulties([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadGuidesData();
+    // Данные загружаются напрямую из JSON файла
+    setGuides(guidesData.guides || []);
+    setCategories(guidesData.categories || []);
+    setDifficulties(guidesData.difficulty || []);
 
     const savedRatings = localStorage.getItem(STORAGE_KEY);
     const savedUserVotes = localStorage.getItem(`${STORAGE_KEY}_user`);
@@ -286,20 +259,7 @@ const Guides = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const response = await fetch(GUIDES_API_URL);
-                    const data = await response.json();
-                    if (data.guides) setGuides(data.guides);
-                    if (data.categories) setCategories(data.categories);
-                    if (data.difficulty) setDifficulties(data.difficulty);
-                  } catch (error) {
-                    console.error("Failed to refresh guides", error);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onClick={() => window.location.reload()}
                 disabled={loading}
               >
                 <Icon name={loading ? "Loader2" : "RefreshCw"} size={16} className={loading ? "animate-spin" : ""} />

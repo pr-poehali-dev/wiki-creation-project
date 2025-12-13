@@ -18,9 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
-import { API_URLS } from "@/config/api";
-
-const ITEMS_URL = API_URLS.ITEMS;
+import wikiData from '@/data/wikiItems.json';
 
 interface WikiItem {
   id: string;
@@ -36,8 +34,8 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>(wikiData.предметы || []);
+  const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favoriteItems");
@@ -53,58 +51,17 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const response = await fetch(ITEMS_URL, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        setWikiItems(data.items || []);
-      } catch (error) {
-        console.error("Failed to load items from API", error);
-        setWikiItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadItems();
+    // Данные загружаются напрямую из JSON файла при импорте
+    setWikiItems(wikiData.предметы || []);
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const refreshItems = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(ITEMS_URL, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setWikiItems(data.items || []);
-    } catch (error) {
-      console.error("Failed to refresh items", error);
-    } finally {
-      setLoading(false);
-    }
+  const refreshItems = () => {
+    // Перезагрузка страницы для получения новых данных из JSON
+    window.location.reload();
   };
 
   const allTags = useMemo(() => {

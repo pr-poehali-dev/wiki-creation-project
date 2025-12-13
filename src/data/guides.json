@@ -1,5 +1,18 @@
 {
-  "categories": [],
+  "categories": [
+    {
+      "id": "survival",
+      "name": "Выживание",
+      "icon": "Home",
+      "description": "Основы выживания на сервере"
+    },
+    {
+      "id": "building",
+      "name": "Строительство",
+      "icon": "Hammer",
+      "description": "Гайды по строительству баз"
+    }
+  ],
   "difficulty": [
     {
       "id": "easy",
@@ -17,29 +30,42 @@
       "color": "#ef4444"
     }
   ],
-  "guides": [],
+  "guides": [
+    {
+      "id": "1",
+      "title": "Первые шаги на сервере",
+      "description": "Узнайте как начать играть на DevilRust с нуля",
+      "category": "survival",
+      "difficulty": "easy",
+      "duration": "10 минут",
+      "author": "Admin",
+      "views": 150,
+      "rating": 4.5,
+      "tags": ["Новичкам", "База", "Ресурсы"],
+      "steps": [
+        {
+          "stepNumber": 1,
+          "title": "Соберите ресурсы",
+          "description": "Начните с добычи дерева и камня. Используйте камень для крафта первых инструментов.",
+          "image": "",
+          "note": "Не уходите далеко от берега в первый день"
+        },
+        {
+          "stepNumber": 2,
+          "title": "Постройте укрытие",
+          "description": "Создайте небольшую базу из дерева для защиты от других игроков и NPC.",
+          "image": "",
+          "note": "Выбирайте место подальше от дороги"
+        }
+      ],
+      "requirements": ["Нет особых требований"],
+      "relatedGuides": [],
+      "type": "text"
+    }
+  ],
   "pageSettings": {
     "title": "Гайды DevilRust",
     "subtitle": "Подробные пошаговые руководства по игре на сервере",
-    "description": "Изучайте механики сервера с помощью наших детальных гайдов",
-    "itemsPerPage": 9,
-    "showFilters": true,
-    "showSearch": true,
-    "showCategoryFilter": true,
-    "showDifficultyFilter": true,
-    "showSortOptions": true,
-    "defaultSort": "popular",
-    "sortOptions": [
-      { "value": "popular", "label": "Популярные" },
-      { "value": "recent", "label": "Новые" },
-      { "value": "rating", "label": "По рейтингу" },
-      { "value": "title", "label": "По названию" }
-    ],
-    "enableRating": true,
-    "enableComments": false,
-    "enableViews": true,
-    "enableDuration": true,
-    "enableAuthor": true,
-    "enableRelatedGuides": true
+    "description": "Изучайте механики сервера с помощью наших детальных гайдов"
   }
 }

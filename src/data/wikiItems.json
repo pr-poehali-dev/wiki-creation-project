@@ -1,3 +1,12 @@
 {
-  "предметы": []
+  "предметы": [
+    {
+      "id": "1",
+      "name": "Деревянный топор",
+      "image": "https://cdn.poehali.dev/projects/ru-central1-c-ccsk7vk4pb9p5fndqhfb-zuvxfmub/bucket/wiki/wood_axe.png",
+      "description": "Базовый инструмент для рубки деревьев. Необходим для начала выживания на сервере.",
+      "tags": ["Инструменты", "Дерево", "Крафт"],
+      "isDonateItem": false
+    }
+  ]
 }
