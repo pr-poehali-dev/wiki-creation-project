@@ -24,8 +24,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { API_URLS } from "@/config/api";
+import guidesData from "@/data/guides.json";
 
 const GUIDES_URL = API_URLS.GUIDES;
+const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 
 interface GuideStep {
   stepNumber: number;
@@ -92,11 +94,9 @@ const AdminGuides = () => {
 
   const loadGuides = async () => {
     try {
-      const response = await fetch(GUIDES_URL);
-      const data = await response.json();
-      setGuides(data.guides || []);
-      setCategories(data.categories || []);
-      setDifficulties(data.difficulty || []);
+      setGuides(guidesData.guides || []);
+      setCategories(guidesData.categories || []);
+      setDifficulties(guidesData.difficulty || []);
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -115,26 +115,36 @@ const AdminGuides = () => {
 
     try {
       const isNew = !editingGuide.id || editingGuide.id === "new";
-      const url = GUIDES_URL;
-      const method = isNew ? "POST" : "PUT";
 
       const guideWithAuthor = {
         ...editingGuide,
         author: isNew ? adminNickname : editingGuide.author
       };
 
-      const body = isNew
-        ? { guide: guideWithAuthor }
-        : { id: editingGuide.id, guide: guideWithAuthor };
+      let updatedGuides;
+      if (isNew) {
+        const newId = String(Math.max(0, ...guides.map(g => parseInt(g.id) || 0)) + 1);
+        guideWithAuthor.id = newId;
+        updatedGuides = [...guides, guideWithAuthor];
+      } else {
+        updatedGuides = guides.map(g => g.id === editingGuide.id ? guideWithAuthor : g);
+      }
 
-      const response = await fetch(url, {
-        method,
+      const fullData = {
+        categories: categories,
+        difficulty: difficulties,
+        guides: updatedGuides,
+        pageSettings: guidesData.pageSettings
+      };
+
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(fullData),
       });
 
       const data = await response.json();
@@ -144,9 +154,9 @@ const AdminGuides = () => {
           title: "Успех",
           description: isNew ? "Гайд создан" : "Гайд обновлен",
         });
-        loadGuides();
         setIsDialogOpen(false);
         setEditingGuide(null);
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -170,14 +180,23 @@ const AdminGuides = () => {
     const adminEmail = localStorage.getItem("adminEmail");
 
     try {
-      const response = await fetch(GUIDES_URL, {
-        method: "DELETE",
+      const updatedGuides = guides.filter(g => g.id !== guideId);
+
+      const fullData = {
+        categories: categories,
+        difficulty: difficulties,
+        guides: updatedGuides,
+        pageSettings: guidesData.pageSettings
+      };
+
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify({ id: guideId }),
+        body: JSON.stringify(fullData),
       });
 
       const data = await response.json();
@@ -187,7 +206,7 @@ const AdminGuides = () => {
           title: "Успех",
           description: "Гайд удален",
         });
-        loadGuides();
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -298,7 +317,7 @@ const AdminGuides = () => {
             "X-Admin-Email": adminEmail || "",
           },
           body: JSON.stringify({
-            image: base64Data,
+            video: base64Data,
             filename: file.name,
             folder: "guides/videos",
           }),
@@ -344,85 +363,26 @@ const AdminGuides = () => {
     }
   };
 
-  const openEditDialog = (guide: Guide | null) => {
-    if (guide) {
-      setEditingGuide({ ...guide });
-    } else {
-      setEditingGuide({
-        id: "new",
-        title: "",
-        description: "",
-        category: categories[0]?.id || "",
-        difficulty: difficulties[0]?.id || "",
-        duration: "",
-        author: email,
-        views: 0,
-        rating: 0,
-        tags: [],
-        steps: [],
-        requirements: [],
-        relatedGuides: [],
-        type: "text",
-      });
-    }
-    setIsDialogOpen(true);
-  };
-
-  const addStep = () => {
-    if (!editingGuide) return;
-    const newStep: GuideStep = {
-      stepNumber: editingGuide.steps.length + 1,
-      title: "",
-      description: "",
-      image: "",
-      video: "",
-      note: "",
-    };
-    setEditingGuide({
-      ...editingGuide,
-      steps: [...editingGuide.steps, newStep],
-    });
-  };
-
-  const removeStep = (index: number) => {
-    if (!editingGuide) return;
-    const updatedSteps = editingGuide.steps.filter((_, i) => i !== index);
-    // Перенумеровываем шаги
-    updatedSteps.forEach((step, i) => {
-      step.stepNumber = i + 1;
-    });
-    setEditingGuide({ ...editingGuide, steps: updatedSteps });
-  };
-
-  const updateStep = (index: number, field: keyof GuideStep, value: string) => {
-    if (!editingGuide) return;
-    const updatedSteps = [...editingGuide.steps];
-    updatedSteps[index] = { ...updatedSteps[index], [field]: value };
-    setEditingGuide({ ...editingGuide, steps: updatedSteps });
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminEmail");
-    navigate("/admin");
-  };
-
-  const handleSaveCategories = async () => {
+  const updateCategories = async (updatedCategories: Category[]) => {
     const token = localStorage.getItem("adminToken");
     const adminEmail = localStorage.getItem("adminEmail");
 
     try {
-      const response = await fetch(GUIDES_URL, {
-        method: "PATCH",
+      const fullData = {
+        categories: updatedCategories,
+        difficulty: difficulties,
+        guides: guides,
+        pageSettings: guidesData.pageSettings
+      };
+
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify({
-          type: "categories",
-          categories: categories,
-        }),
+        body: JSON.stringify(fullData),
       });
 
       const data = await response.json();
@@ -433,6 +393,7 @@ const AdminGuides = () => {
           description: "Категории обновлены",
         });
         setIsCategoriesDialogOpen(false);
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -449,22 +410,26 @@ const AdminGuides = () => {
     }
   };
 
-  const handleSaveDifficulties = async () => {
+  const updateDifficulties = async (updatedDifficulties: Difficulty[]) => {
     const token = localStorage.getItem("adminToken");
     const adminEmail = localStorage.getItem("adminEmail");
 
     try {
-      const response = await fetch(GUIDES_URL, {
-        method: "PATCH",
+      const fullData = {
+        categories: categories,
+        difficulty: updatedDifficulties,
+        guides: guides,
+        pageSettings: guidesData.pageSettings
+      };
+
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify({
-          type: "difficulties",
-          difficulties: difficulties,
-        }),
+        body: JSON.stringify(fullData),
       });
 
       const data = await response.json();
@@ -475,6 +440,7 @@ const AdminGuides = () => {
           description: "Уровни сложности обновлены",
         });
         setIsDifficultiesDialogOpen(false);
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -491,148 +457,169 @@ const AdminGuides = () => {
     }
   };
 
-  const addCategory = () => {
-    setCategories([
-      ...categories,
-      {
-        id: `cat-${Date.now()}`,
-        name: "",
-        icon: "Star",
-        description: "",
-      },
-    ]);
+  const addStep = () => {
+    if (!editingGuide) return;
+    const newStep: GuideStep = {
+      stepNumber: editingGuide.steps.length + 1,
+      title: "",
+      description: "",
+      image: "",
+    };
+    setEditingGuide({
+      ...editingGuide,
+      steps: [...editingGuide.steps, newStep],
+    });
   };
 
-  const removeCategory = (id: string) => {
-    setCategories(categories.filter((c) => c.id !== id));
+  const removeStep = (index: number) => {
+    if (!editingGuide) return;
+    const updatedSteps = editingGuide.steps.filter((_, i) => i !== index);
+    const reorderedSteps = updatedSteps.map((step, i) => ({
+      ...step,
+      stepNumber: i + 1,
+    }));
+    setEditingGuide({ ...editingGuide, steps: reorderedSteps });
   };
 
-  const updateCategory = (id: string, field: keyof Category, value: string) => {
-    setCategories(
-      categories.map((c) => (c.id === id ? { ...c, [field]: value } : c))
-    );
-  };
-
-  const addDifficulty = () => {
-    setDifficulties([
-      ...difficulties,
-      {
-        id: `diff-${Date.now()}`,
-        name: "",
-        color: "#3b82f6",
-      },
-    ]);
-  };
-
-  const removeDifficulty = (id: string) => {
-    setDifficulties(difficulties.filter((d) => d.id !== id));
-  };
-
-  const updateDifficulty = (id: string, field: keyof Difficulty, value: string) => {
-    setDifficulties(
-      difficulties.map((d) => (d.id === id ? { ...d, [field]: value } : d))
-    );
+  const updateStep = (index: number, field: keyof GuideStep, value: string) => {
+    if (!editingGuide) return;
+    const updatedSteps = [...editingGuide.steps];
+    updatedSteps[index] = { ...updatedSteps[index], [field]: value };
+    setEditingGuide({ ...editingGuide, steps: updatedSteps });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Icon name="BookOpen" size={24} className="text-primary" />
-              <h1 className="text-xl font-bold">Редактор гайдов</h1>
-              <Badge variant="secondary">{email}</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => navigate("/admin")}>
-                <Icon name="Package" size={16} className="mr-2" />
-                Предметы
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/")}>
-                <Icon name="Home" size={16} className="mr-2" />
-                На главную
-              </Button>
-              <Button variant="destructive" onClick={handleLogout}>
-                <Icon name="LogOut" size={16} className="mr-2" />
-                Выйти
-              </Button>
-            </div>
-          </div>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Управление гайдами</h1>
+          <p className="text-muted-foreground mt-2">
+            Вы вошли как: {email}
+          </p>
         </div>
-      </nav>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-bold">Управление гайдами</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsCategoriesDialogOpen(true)}>
-              <Icon name="Folder" size={16} className="mr-2" />
-              Категории
-            </Button>
-            <Button variant="outline" onClick={() => setIsDifficultiesDialogOpen(true)}>
-              <Icon name="Target" size={16} className="mr-2" />
-              Сложность
-            </Button>
-            <Button onClick={() => openEditDialog(null)}>
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить гайд
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsCategoriesDialogOpen(true)}
+          >
+            <Icon name="FolderOpen" className="mr-2 h-4 w-4" />
+            Категории
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsDifficultiesDialogOpen(true)}
+          >
+            <Icon name="BarChart" className="mr-2 h-4 w-4" />
+            Сложность
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingGuide({
+                id: "new",
+                title: "",
+                description: "",
+                category: categories[0]?.id || "",
+                difficulty: difficulties[0]?.id || "",
+                duration: "",
+                author: "",
+                views: 0,
+                rating: 0,
+                tags: [],
+                steps: [],
+                requirements: [],
+                relatedGuides: [],
+                type: "text",
+              });
+              setIsDialogOpen(true);
+            }}
+          >
+            <Icon name="Plus" className="mr-2 h-4 w-4" />
+            Добавить гайд
+          </Button>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {guides.map((guide) => (
-            <Card key={guide.id} className="hover:border-primary transition-colors">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CardTitle className="text-lg">{guide.title}</CardTitle>
-                      {guide.type === "video" ? (
-                        <Icon name="Video" size={18} className="text-primary" />
-                      ) : (
-                        <Icon name="FileText" size={18} className="text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant="secondary">{guide.category}</Badge>
-                      <Badge variant="outline">{guide.difficulty}</Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                  {guide.description}
-                </p>
-                <div className="flex gap-2 text-xs text-muted-foreground mb-3">
-                  <span>👁 {guide.views}</span>
-                  <span>⭐ {guide.rating}</span>
-                  <span>📖 {guide.steps.length} шагов</span>
+      <div className="grid gap-4">
+        {guides.map((guide) => (
+          <Card key={guide.id}>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="flex items-center gap-2">
+                    {guide.title}
+                    <Badge variant="outline">
+                      {categories.find((c) => c.id === guide.category)?.name}
+                    </Badge>
+                    <Badge
+                      style={{
+                        backgroundColor:
+                          difficulties.find((d) => d.id === guide.difficulty)
+                            ?.color + "20",
+                        color: difficulties.find(
+                          (d) => d.id === guide.difficulty
+                        )?.color,
+                      }}
+                    >
+                      {difficulties.find((d) => d.id === guide.difficulty)?.name}
+                    </Badge>
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {guide.description}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
-                    onClick={() => openEditDialog(guide)}
+                    onClick={() => {
+                      setEditingGuide(guide);
+                      setIsDialogOpen(true);
+                    }}
                   >
-                    <Icon name="Pencil" size={14} className="mr-1" />
-                    Изменить
+                    <Icon name="Pencil" className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDeleteGuide(guide.id)}
                   >
-                    <Icon name="Trash2" size={14} />
+                    <Icon name="Trash2" className="h-4 w-4" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Автор:</span>{" "}
+                  {guide.author}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Длительность:</span>{" "}
+                  {guide.duration}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Просмотры:</span>{" "}
+                  {guide.views}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Рейтинг:</span>{" "}
+                  {guide.rating}
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-muted-foreground text-sm">Теги:</span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {guide.tags.map((tag, i) => (
+                    <Badge key={i} variant="secondary">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -642,82 +629,38 @@ const AdminGuides = () => {
               {editingGuide?.id === "new" ? "Создать гайд" : "Редактировать гайд"}
             </DialogTitle>
             <DialogDescription>
-              Заполните информацию о гайде и добавьте шаги
+              Заполните информацию о гайде
             </DialogDescription>
           </DialogHeader>
 
           {editingGuide && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Название</Label>
-                  <Input
-                    id="title"
-                    value={editingGuide.title}
-                    onChange={(e) =>
-                      setEditingGuide({ ...editingGuide, title: e.target.value })
-                    }
-                    placeholder="Название гайда"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Длительность</Label>
-                  <Input
-                    id="duration"
-                    value={editingGuide.duration}
-                    onChange={(e) =>
-                      setEditingGuide({ ...editingGuide, duration: e.target.value })
-                    }
-                    placeholder="5-10 минут"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type">Тип гайда</Label>
-                  <Select
-                    value={editingGuide.type || "text"}
-                    onValueChange={(value: "text" | "video") =>
-                      setEditingGuide({ ...editingGuide, type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите тип" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text">
-                        <span className="flex items-center gap-2">
-                          <Icon name="FileText" size={14} />
-                          Текстовый
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="video">
-                        <span className="flex items-center gap-2">
-                          <Icon name="Video" size={14} />
-                          Видео
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <Label>Название</Label>
+                <Input
+                  value={editingGuide.title}
+                  onChange={(e) =>
+                    setEditingGuide({ ...editingGuide, title: e.target.value })
+                  }
+                />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Описание</Label>
+              <div>
+                <Label>Описание</Label>
                 <Textarea
-                  id="description"
                   value={editingGuide.description}
                   onChange={(e) =>
-                    setEditingGuide({ ...editingGuide, description: e.target.value })
+                    setEditingGuide({
+                      ...editingGuide,
+                      description: e.target.value,
+                    })
                   }
-                  placeholder="Краткое описание гайда"
-                  rows={3}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Категория</Label>
+                <div>
+                  <Label>Категория</Label>
                   <Select
                     value={editingGuide.category}
                     onValueChange={(value) =>
@@ -725,7 +668,7 @@ const AdminGuides = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Выберите категорию" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
@@ -737,8 +680,8 @@ const AdminGuides = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Сложность</Label>
+                <div>
+                  <Label>Сложность</Label>
                   <Select
                     value={editingGuide.difficulty}
                     onValueChange={(value) =>
@@ -746,7 +689,7 @@ const AdminGuides = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Выберите сложность" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {difficulties.map((diff) => (
@@ -759,130 +702,176 @@ const AdminGuides = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tags">Теги (через запятую)</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Длительность</Label>
+                  <Input
+                    value={editingGuide.duration}
+                    onChange={(e) =>
+                      setEditingGuide({
+                        ...editingGuide,
+                        duration: e.target.value,
+                      })
+                    }
+                    placeholder="10 минут"
+                  />
+                </div>
+
+                <div>
+                  <Label>Тип</Label>
+                  <Select
+                    value={editingGuide.type || "text"}
+                    onValueChange={(value: 'text' | 'video') =>
+                      setEditingGuide({ ...editingGuide, type: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Текст</SelectItem>
+                      <SelectItem value="video">Видео</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Теги (через запятую)</Label>
                 <Input
-                  id="tags"
                   value={editingGuide.tags.join(", ")}
                   onChange={(e) =>
                     setEditingGuide({
                       ...editingGuide,
-                      tags: e.target.value
-                        .split(",")
-                        .map((tag) => tag.trim())
-                        .filter((tag) => tag),
+                      tags: e.target.value.split(",").map((t) => t.trim()),
                     })
                   }
-                  placeholder="тег1, тег2, тег3"
+                  placeholder="Новичкам, База, Ресурсы"
                 />
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Шаги гайда</Label>
+              <div>
+                <Label>Требования (через запятую)</Label>
+                <Input
+                  value={editingGuide.requirements?.join(", ") || ""}
+                  onChange={(e) =>
+                    setEditingGuide({
+                      ...editingGuide,
+                      requirements: e.target.value
+                        .split(",")
+                        .map((t) => t.trim()),
+                    })
+                  }
+                  placeholder="Камень, Дерево"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Шаги</Label>
                   <Button type="button" size="sm" onClick={addStep}>
-                    <Icon name="Plus" size={14} className="mr-1" />
+                    <Icon name="Plus" className="mr-2 h-4 w-4" />
                     Добавить шаг
                   </Button>
                 </div>
 
-                {editingGuide.steps.map((step, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm">Шаг {step.stepNumber}</CardTitle>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeStep(index)}
-                        >
-                          <Icon name="X" size={14} />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Input
-                        value={step.title}
-                        onChange={(e) => updateStep(index, "title", e.target.value)}
-                        placeholder="Заголовок шага"
-                      />
-                      <Textarea
-                        value={step.description}
-                        onChange={(e) =>
-                          updateStep(index, "description", e.target.value)
-                        }
-                        placeholder="Описание шага"
-                        rows={2}
-                      />
-                      <div className="flex gap-2">
-                        <Input
-                          value={step.image}
-                          onChange={(e) => updateStep(index, "image", e.target.value)}
-                          placeholder="URL изображения"
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={uploading}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleImageUpload(file, index);
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Icon
-                            name={uploading ? "Loader2" : "Image"}
-                            size={14}
-                            className={uploading ? "animate-spin" : ""}
+                <div className="space-y-4">
+                  {editingGuide.steps.map((step, index) => (
+                    <Card key={index}>
+                      <CardContent className="pt-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <Label>Шаг {step.stepNumber}</Label>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeStep(index)}
+                          >
+                            <Icon name="Trash2" className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Заголовок шага"
+                            value={step.title}
+                            onChange={(e) =>
+                              updateStep(index, "title", e.target.value)
+                            }
                           />
-                        </Button>
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          value={step.video || ""}
-                          onChange={(e) => updateStep(index, "video", e.target.value)}
-                          placeholder="URL видео (необязательно)"
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={uploading}
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "video/mp4,video/webm,video/quicktime";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleVideoUpload(file, index);
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Icon
-                            name={uploading ? "Loader2" : "Video"}
-                            size={14}
-                            className={uploading ? "animate-spin" : ""}
+                          <Textarea
+                            placeholder="Описание шага"
+                            value={step.description}
+                            onChange={(e) =>
+                              updateStep(index, "description", e.target.value)
+                            }
                           />
-                        </Button>
-                      </div>
-                      <Input
-                        value={step.note || ""}
-                        onChange={(e) => updateStep(index, "note", e.target.value)}
-                        placeholder="Примечание (необязательно)"
-                      />
-                    </CardContent>
-                  </Card>
-                ))}
+                          <Input
+                            placeholder="Примечание (необязательно)"
+                            value={step.note || ""}
+                            onChange={(e) =>
+                              updateStep(index, "note", e.target.value)
+                            }
+                          />
+
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <Label>Изображение</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleImageUpload(file, index);
+                                  }}
+                                  disabled={uploading}
+                                />
+                                {step.image && (
+                                  <a
+                                    href={step.image}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button type="button" variant="outline" size="sm">
+                                      <Icon name="Eye" className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex-1">
+                              <Label>Видео (необязательно)</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  type="file"
+                                  accept="video/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleVideoUpload(file, index);
+                                  }}
+                                  disabled={uploading}
+                                />
+                                {step.video && (
+                                  <a
+                                    href={step.video}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button type="button" variant="outline" size="sm">
+                                      <Icon name="Eye" className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -891,147 +880,147 @@ const AdminGuides = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Отмена
             </Button>
-            <Button onClick={handleSaveGuide}>
-              <Icon name="Save" size={16} className="mr-2" />
-              Сохранить
-            </Button>
+            <Button onClick={handleSaveGuide}>Сохранить</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isCategoriesDialogOpen} onOpenChange={setIsCategoriesDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog
+        open={isCategoriesDialogOpen}
+        onOpenChange={setIsCategoriesDialogOpen}
+      >
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Редактирование категорий</DialogTitle>
-            <DialogDescription>
-              Управление категориями для гайдов
-            </DialogDescription>
+            <DialogTitle>Управление категориями</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4">
-            {categories.map((category, index) => (
-              <Card key={category.id}>
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1 space-y-3">
-                      <Input
-                        value={category.id}
-                        onChange={(e) => updateCategory(category.id, "id", e.target.value)}
-                        placeholder="ID категории (например: building)"
-                      />
-                      <Input
-                        value={category.name}
-                        onChange={(e) => updateCategory(category.id, "name", e.target.value)}
-                        placeholder="Название категории"
-                      />
-                      <Input
-                        value={category.icon}
-                        onChange={(e) => updateCategory(category.id, "icon", e.target.value)}
-                        placeholder="Иконка (lucide-react)"
-                      />
-                      <Textarea
-                        value={category.description}
-                        onChange={(e) => updateCategory(category.id, "description", e.target.value)}
-                        placeholder="Описание категории"
-                        rows={2}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCategory(category.id)}
-                    >
-                      <Icon name="X" size={16} />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {categories.map((cat, index) => (
+              <div key={cat.id} className="flex gap-2">
+                <Input
+                  value={cat.name}
+                  onChange={(e) => {
+                    const updated = [...categories];
+                    updated[index].name = e.target.value;
+                    setCategories(updated);
+                  }}
+                />
+                <Input
+                  value={cat.icon}
+                  onChange={(e) => {
+                    const updated = [...categories];
+                    updated[index].icon = e.target.value;
+                    setCategories(updated);
+                  }}
+                  placeholder="Icon"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    const updated = categories.filter((_, i) => i !== index);
+                    setCategories(updated);
+                  }}
+                >
+                  <Icon name="Trash2" className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
-
-            <Button type="button" variant="outline" onClick={addCategory} className="w-full">
-              <Icon name="Plus" size={16} className="mr-2" />
+            <Button
+              onClick={() => {
+                setCategories([
+                  ...categories,
+                  {
+                    id: `cat-${Date.now()}`,
+                    name: "",
+                    icon: "",
+                    description: "",
+                  },
+                ]);
+              }}
+            >
+              <Icon name="Plus" className="mr-2 h-4 w-4" />
               Добавить категорию
             </Button>
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCategoriesDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsCategoriesDialogOpen(false)}
+            >
               Отмена
             </Button>
-            <Button onClick={handleSaveCategories}>
-              <Icon name="Save" size={16} className="mr-2" />
+            <Button onClick={() => updateCategories(categories)}>
               Сохранить
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDifficultiesDialogOpen} onOpenChange={setIsDifficultiesDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog
+        open={isDifficultiesDialogOpen}
+        onOpenChange={setIsDifficultiesDialogOpen}
+      >
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Редактирование уровней сложности</DialogTitle>
-            <DialogDescription>
-              Управление уровнями сложности для гайдов
-            </DialogDescription>
+            <DialogTitle>Управление уровнями сложности</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4">
-            {difficulties.map((difficulty, index) => (
-              <Card key={difficulty.id}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1 space-y-3">
-                      <Input
-                        value={difficulty.id}
-                        onChange={(e) => updateDifficulty(difficulty.id, "id", e.target.value)}
-                        placeholder="ID сложности (например: easy)"
-                      />
-                      <Input
-                        value={difficulty.name}
-                        onChange={(e) => updateDifficulty(difficulty.id, "name", e.target.value)}
-                        placeholder="Название"
-                      />
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="color"
-                          value={difficulty.color}
-                          onChange={(e) => updateDifficulty(difficulty.id, "color", e.target.value)}
-                          className="w-20 h-10"
-                        />
-                        <Input
-                          value={difficulty.color}
-                          onChange={(e) => updateDifficulty(difficulty.id, "color", e.target.value)}
-                          placeholder="#22c55e"
-                          className="flex-1"
-                        />
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDifficulty(difficulty.id)}
-                    >
-                      <Icon name="X" size={16} />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {difficulties.map((diff, index) => (
+              <div key={diff.id} className="flex gap-2">
+                <Input
+                  value={diff.name}
+                  onChange={(e) => {
+                    const updated = [...difficulties];
+                    updated[index].name = e.target.value;
+                    setDifficulties(updated);
+                  }}
+                />
+                <Input
+                  type="color"
+                  value={diff.color}
+                  onChange={(e) => {
+                    const updated = [...difficulties];
+                    updated[index].color = e.target.value;
+                    setDifficulties(updated);
+                  }}
+                  className="w-20"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    const updated = difficulties.filter((_, i) => i !== index);
+                    setDifficulties(updated);
+                  }}
+                >
+                  <Icon name="Trash2" className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
-
-            <Button type="button" variant="outline" onClick={addDifficulty} className="w-full">
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить уровень сложности
+            <Button
+              onClick={() => {
+                setDifficulties([
+                  ...difficulties,
+                  {
+                    id: `diff-${Date.now()}`,
+                    name: "",
+                    color: "#000000",
+                  },
+                ]);
+              }}
+            >
+              <Icon name="Plus" className="mr-2 h-4 w-4" />
+              Добавить уровень
             </Button>
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDifficultiesDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDifficultiesDialogOpen(false)}
+            >
               Отмена
             </Button>
-            <Button onClick={handleSaveDifficulties}>
-              <Icon name="Save" size={16} className="mr-2" />
+            <Button onClick={() => updateDifficulties(difficulties)}>
               Сохранить
             </Button>
           </DialogFooter>

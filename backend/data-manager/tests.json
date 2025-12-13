@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Get items data",
+      "method": "GET",
+      "path": "/?type=items",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get guides data",
+      "method": "GET",
+      "path": "/?type=guides",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

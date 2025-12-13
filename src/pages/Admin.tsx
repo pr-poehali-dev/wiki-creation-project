@@ -6,8 +6,9 @@ import AdminLogin from "@/components/admin/AdminLogin";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import AdminItemDialog from "@/components/admin/AdminItemDialog";
 import AdminItemsList from "@/components/admin/AdminItemsList";
+import wikiItemsData from '@/data/wikiItems.json';
 
-const ITEMS_URL = API_URLS.ITEMS;
+const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 const GUIDES_URL = API_URLS.GUIDES;
 
 interface WikiItem {
@@ -39,18 +40,9 @@ const Admin = () => {
     }
   }, []);
 
-  const loadItems = async () => {
-    try {
-      const response = await fetch(ITEMS_URL);
-      const data = await response.json();
-      setItems(data.items || []);
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить предметы",
-        variant: "destructive",
-      });
-    }
+  const loadItems = () => {
+    // Загружаем данные напрямую из импортированного JSON
+    setItems(wikiItemsData.предметы || []);
   };
 
   const handleLoginSuccess = (userEmail: string) => {
@@ -74,21 +66,32 @@ const Admin = () => {
 
     try {
       const isNew = !editingItem.id || editingItem.id === "new";
-      const url = ITEMS_URL;
-      const method = isNew ? "POST" : "PUT";
+      
+      let updatedItems: WikiItem[];
+      if (isNew) {
+        // Генерируем новый ID
+        const maxId = items.reduce((max, item) => {
+          const numId = parseInt(item.id);
+          return !isNaN(numId) && numId > max ? numId : max;
+        }, 0);
+        const newItem = { ...editingItem, id: String(maxId + 1) };
+        updatedItems = [...items, newItem];
+      } else {
+        // Обновляем существующий предмет
+        updatedItems = items.map(item => 
+          item.id === editingItem.id ? editingItem : item
+        );
+      }
 
-      const body = isNew
-        ? { item: editingItem }
-        : { id: editingItem.id, item: editingItem };
-
-      const response = await fetch(url, {
-        method,
+      // Отправляем обновленные данные на сервер
+      const response = await fetch(`${DATA_MANAGER_URL}?type=items`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ предметы: updatedItems }),
       });
 
       const data = await response.json();
@@ -98,9 +101,12 @@ const Admin = () => {
           title: "Успех",
           description: isNew ? "Предмет создан" : "Предмет обновлен",
         });
-        loadItems();
+        setItems(updatedItems);
         setIsDialogOpen(false);
         setEditingItem(null);
+        
+        // Перезагружаем страницу через секунду чтобы подхватить новые данные
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -124,14 +130,16 @@ const Admin = () => {
     const adminEmail = localStorage.getItem("adminEmail");
 
     try {
-      const response = await fetch(ITEMS_URL, {
-        method: "DELETE",
+      const updatedItems = items.filter(item => item.id !== itemId);
+      
+      const response = await fetch(`${DATA_MANAGER_URL}?type=items`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Admin-Token": token || "",
           "X-Admin-Email": adminEmail || "",
         },
-        body: JSON.stringify({ id: itemId }),
+        body: JSON.stringify({ предметы: updatedItems }),
       });
 
       const data = await response.json();
@@ -141,7 +149,10 @@ const Admin = () => {
           title: "Успех",
           description: "Предмет удален",
         });
-        loadItems();
+        setItems(updatedItems);
+        
+        // Перезагружаем страницу через секунду
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
