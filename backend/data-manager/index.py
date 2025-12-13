@@ -1,34 +1,56 @@
 import json
 import os
+import boto3
 from typing import Dict, Any
+
+ITEMS_FILE_KEY = "wiki/items.json"
+GUIDES_FILE_KEY = "wiki/guides.json"
 
 def verify_admin_token(token: str, email: str) -> bool:
     """Проверка токена администратора"""
     return bool(token) and bool(email)
 
-def read_json_file(file_path: str) -> Dict:
-    """Чтение JSON файла"""
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {}
+def get_s3_client():
+    """Получение S3 клиента"""
+    return boto3.client('s3',
+        endpoint_url='https://bucket.poehali.dev',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    )
 
-def write_json_file(file_path: str, data: Dict) -> None:
-    """Запись JSON файла"""
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def load_from_s3(file_key: str, default_data: Dict) -> Dict:
+    """Загрузка данных из S3"""
+    try:
+        s3 = get_s3_client()
+        response = s3.get_object(Bucket='files', Key=file_key)
+        data = json.loads(response['Body'].read().decode('utf-8'))
+        return data
+    except:
+        try:
+            save_to_s3(file_key, default_data)
+        except:
+            pass
+        return default_data
+
+def save_to_s3(file_key: str, data: Dict) -> None:
+    """Сохранение данных в S3"""
+    s3 = get_s3_client()
+    s3.put_object(
+        Bucket='files',
+        Key=file_key,
+        Body=json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8'),
+        ContentType='application/json'
+    )
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Управление данными в JSON файлах
+    Управление данными в S3
     GET ?type=items|guides - получить данные
     POST ?type=items|guides - обновить данные
     """
     method: str = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}
-    data_type = query_params.get('type', 'items')  # items или guides
+    data_type = query_params.get('type', 'items')
     
     if method == 'OPTIONS':
         return {
@@ -43,11 +65,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Определяем путь к файлу
+    # Определяем файл и default данные
     if data_type == 'items':
-        file_path = 'src/data/wikiItems.json'
+        file_key = ITEMS_FILE_KEY
+        default_data = {"предметы": []}
     elif data_type == 'guides':
-        file_path = 'src/data/guides.json'
+        file_key = GUIDES_FILE_KEY
+        default_data = {
+            "categories": [],
+            "difficulty": [
+                {"id": "easy", "name": "Легко", "color": "#22c55e"},
+                {"id": "medium", "name": "Средне", "color": "#eab308"},
+                {"id": "hard", "name": "Сложно", "color": "#ef4444"}
+            ],
+            "guides": [],
+            "pageSettings": {
+                "title": "Гайды DevilRust",
+                "subtitle": "Подробные пошаговые руководства по игре на сервере"
+            }
+        }
     else:
         return {
             'statusCode': 400,
@@ -58,7 +94,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     # GET - публичный доступ для чтения
     if method == 'GET':
-        data = read_json_file(file_path)
+        data = load_from_s3(file_key, default_data)
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -82,9 +118,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         body_data = json.loads(event.get('body', '{}'))
         
-        # Записываем данные в файл
+        # Сохраняем данные в S3
         try:
-            write_json_file(file_path, body_data)
+            save_to_s3(file_key, body_data)
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},

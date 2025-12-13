@@ -40,9 +40,15 @@ const Admin = () => {
     }
   }, []);
 
-  const loadItems = () => {
-    // Загружаем данные напрямую из импортированного JSON
-    setItems(wikiItemsData.предметы || []);
+  const loadItems = async () => {
+    try {
+      const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+      const data = await response.json();
+      setItems(data.предметы || data.items || []);
+    } catch (error) {
+      console.error('Failed to load items', error);
+      setItems(wikiItemsData.предметы || []);
+    }
   };
 
   const handleLoginSuccess = (userEmail: string) => {
@@ -104,9 +110,6 @@ const Admin = () => {
         setItems(updatedItems);
         setIsDialogOpen(false);
         setEditingItem(null);
-        
-        // Перезагружаем страницу через секунду чтобы подхватить новые данные
-        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",
@@ -150,9 +153,6 @@ const Admin = () => {
           description: "Предмет удален",
         });
         setItems(updatedItems);
-        
-        // Перезагружаем страницу через секунду
-        setTimeout(() => window.location.reload(), 1000);
       } else {
         toast({
           title: "Ошибка",

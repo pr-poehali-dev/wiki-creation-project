@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import guidesData from '@/data/guides.json';
+import { API_URLS } from '@/config/api';
+import guidesDataFallback from '@/data/guides.json';
+
+const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 
 interface GuideRating {
   totalVotes: number;
@@ -56,10 +59,10 @@ const STORAGE_KEY = 'devilrust_guide_ratings';
 const VIEWS_STORAGE_KEY = 'devilrust_guide_views';
 
 const Guides = () => {
-  const [guides, setGuides] = useState<Guide[]>(guidesData.guides || []);
-  const [categories, setCategories] = useState<Category[]>(guidesData.categories || []);
-  const [difficulties, setDifficulties] = useState<Difficulty[]>(guidesData.difficulty || []);
-  const [loading, setLoading] = useState(false);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -72,10 +75,23 @@ const Guides = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Данные загружаются напрямую из JSON файла
-    setGuides(guidesData.guides || []);
-    setCategories(guidesData.categories || []);
-    setDifficulties(guidesData.difficulty || []);
+    const loadGuidesData = async () => {
+      try {
+        const response = await fetch(`${DATA_MANAGER_URL}?type=guides`);
+        const data = await response.json();
+        setGuides(data.guides || guidesDataFallback.guides || []);
+        setCategories(data.categories || guidesDataFallback.categories || []);
+        setDifficulties(data.difficulty || guidesDataFallback.difficulty || []);
+      } catch (error) {
+        console.error('Failed to load guides', error);
+        setGuides(guidesDataFallback.guides || []);
+        setCategories(guidesDataFallback.categories || []);
+        setDifficulties(guidesDataFallback.difficulty || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadGuidesData();
 
     const savedRatings = localStorage.getItem(STORAGE_KEY);
     const savedUserVotes = localStorage.getItem(`${STORAGE_KEY}_user`);
@@ -259,7 +275,20 @@ const Guides = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.location.reload()}
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const response = await fetch(`${DATA_MANAGER_URL}?type=guides`);
+                    const data = await response.json();
+                    setGuides(data.guides || guidesDataFallback.guides || []);
+                    setCategories(data.categories || guidesDataFallback.categories || []);
+                    setDifficulties(data.difficulty || guidesDataFallback.difficulty || []);
+                  } catch (error) {
+                    console.error('Failed to refresh guides', error);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
                 disabled={loading}
               >
                 <Icon name={loading ? "Loader2" : "RefreshCw"} size={16} className={loading ? "animate-spin" : ""} />

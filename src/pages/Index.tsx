@@ -18,7 +18,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
-import wikiData from '@/data/wikiItems.json';
+import { API_URLS } from '@/config/api';
+import wikiDataFallback from '@/data/wikiItems.json';
+
+const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 
 interface WikiItem {
   id: string;
@@ -34,8 +37,8 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>(wikiData.предметы || []);
-  const [loading, setLoading] = useState(false);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favoriteItems");
@@ -51,17 +54,36 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    // Данные загружаются напрямую из JSON файла при импорте
-    setWikiItems(wikiData.предметы || []);
+    const loadItems = async () => {
+      try {
+        const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+        const data = await response.json();
+        setWikiItems(data.предметы || wikiDataFallback.предметы || []);
+      } catch (error) {
+        console.error('Failed to load items', error);
+        setWikiItems(wikiDataFallback.предметы || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadItems();
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const refreshItems = () => {
-    // Перезагрузка страницы для получения новых данных из JSON
-    window.location.reload();
+  const refreshItems = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+      const data = await response.json();
+      setWikiItems(data.предметы || wikiDataFallback.предметы || []);
+    } catch (error) {
+      console.error('Failed to refresh items', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const allTags = useMemo(() => {

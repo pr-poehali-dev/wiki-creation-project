@@ -94,15 +94,16 @@ const AdminGuides = () => {
 
   const loadGuides = async () => {
     try {
+      const response = await fetch(`${DATA_MANAGER_URL}?type=guides`);
+      const data = await response.json();
+      setGuides(data.guides || guidesData.guides || []);
+      setCategories(data.categories || guidesData.categories || []);
+      setDifficulties(data.difficulty || guidesData.difficulty || []);
+    } catch (error) {
+      console.error('Failed to load guides', error);
       setGuides(guidesData.guides || []);
       setCategories(guidesData.categories || []);
       setDifficulties(guidesData.difficulty || []);
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить гайды",
-        variant: "destructive",
-      });
     }
   };
 
@@ -156,7 +157,7 @@ const AdminGuides = () => {
         });
         setIsDialogOpen(false);
         setEditingGuide(null);
-        setTimeout(() => window.location.reload(), 1000);
+        loadGuides();
       } else {
         toast({
           title: "Ошибка",
@@ -206,7 +207,7 @@ const AdminGuides = () => {
           title: "Успех",
           description: "Гайд удален",
         });
-        setTimeout(() => window.location.reload(), 1000);
+        loadGuides();
       } else {
         toast({
           title: "Ошибка",
@@ -393,7 +394,7 @@ const AdminGuides = () => {
           description: "Категории обновлены",
         });
         setIsCategoriesDialogOpen(false);
-        setTimeout(() => window.location.reload(), 1000);
+        loadGuides();
       } else {
         toast({
           title: "Ошибка",
@@ -440,7 +441,7 @@ const AdminGuides = () => {
           description: "Уровни сложности обновлены",
         });
         setIsDifficultiesDialogOpen(false);
-        setTimeout(() => window.location.reload(), 1000);
+        loadGuides();
       } else {
         toast({
           title: "Ошибка",
