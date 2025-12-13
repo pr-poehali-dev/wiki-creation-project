@@ -43,11 +43,13 @@ def load_from_s3(file_key: str, default_data: Dict) -> Dict:
         response = s3.get_object(Bucket='files', Key=file_key)
         data = json.loads(response['Body'].read().decode('utf-8'))
         return data
-    except:
+    except Exception as e:
+        print(f"Error loading from S3: {e}, creating default data")
         try:
             save_to_s3(file_key, default_data)
-        except:
-            pass
+            print(f"Successfully saved default data to {file_key}")
+        except Exception as save_error:
+            print(f"Error saving default data: {save_error}")
         return default_data
 
 def save_to_s3(file_key: str, data: Dict) -> None:
@@ -113,7 +115,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Определяем файл и default данные
     if data_type == 'items':
         file_key = ITEMS_FILE_KEY
-        default_data = {"предметы": []}
+        default_data = {
+            "предметы": [
+                {
+                    "id": "1",
+                    "name": "Деревянный топор",
+                    "image": "https://cdn.poehali.dev/projects/YCAJEeOKFaYpKF5keSU8a/bucket/wiki-items/wooden-axe.png",
+                    "description": "Базовый инструмент для добычи дерева. Можно создать из камня и палок.",
+                    "tags": ["инструмент", "начальный"],
+                    "isDonateItem": false
+                },
+                {
+                    "id": "2",
+                    "name": "Каменная кирка",
+                    "image": "https://cdn.poehali.dev/projects/YCAJEeOKFaYpKF5keSU8a/bucket/wiki-items/stone-pickaxe.png",
+                    "description": "Инструмент для добычи руды и камня.",
+                    "tags": ["инструмент", "добыча"],
+                    "isDonateItem": false
+                }
+            ]
+        }
     elif data_type == 'guides':
         file_key = GUIDES_FILE_KEY
         default_data = {

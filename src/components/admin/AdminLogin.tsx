@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Icon from "@/components/ui/icon";
 import { API_URLS } from "@/config/api";
+import { initializeData } from "@/utils/initializeData";
 
 const AUTH_URL = API_URLS.AUTH;
 
@@ -18,7 +19,27 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(false);
   const navigate = useNavigate();
+
+  const handleInitialize = async () => {
+    setInitializing(true);
+    try {
+      await initializeData();
+      toast({
+        title: "Успех",
+        description: "Данные успешно инициализированы. Проверьте консоль для деталей.",
+      });
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось инициализировать данные",
+        variant: "destructive",
+      });
+    } finally {
+      setInitializing(false);
+    }
+  };
 
   const handleLogin = async () => {
     setLoading(true);
@@ -128,6 +149,30 @@ const AdminLogin = ({ onLoginSuccess, toast }: AdminLoginProps) => {
             >
               Вернуться на главную
             </Button>
+            <div className="pt-4 border-t border-red-500/20">
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full bg-orange-600 hover:bg-orange-700"
+                onClick={handleInitialize}
+                disabled={initializing}
+              >
+                {initializing ? (
+                  <>
+                    <Icon name="Loader2" className="mr-2 h-4 w-4 animate-spin" />
+                    Инициализация...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Database" className="mr-2 h-4 w-4" />
+                    Инициализировать данные
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-center mt-2 text-orange-300">
+                Использовать только при первом запуске
+              </p>
+            </div>
           </form>
         </CardContent>
       </Card>
