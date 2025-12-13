@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { API_URLS } from "@/config/api";
 import guidesData from "@/data/guides.json";
+import AdminNavbar from "@/components/admin/AdminNavbar";
 
 const GUIDES_URL = API_URLS.GUIDES;
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
@@ -489,15 +490,24 @@ const AdminGuides = () => {
     setEditingGuide({ ...editingGuide, steps: updatedSteps });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminEmail");
+    navigate("/");
+  };
+
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Управление гайдами</h1>
-          <p className="text-muted-foreground mt-2">
-            Вы вошли как: {email}
-          </p>
-        </div>
+    <div className="min-h-screen bg-background">
+      <AdminNavbar email={email} onLogout={handleLogout} />
+      
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Управление гайдами</h1>
+            <p className="text-muted-foreground mt-2">
+              Создавайте и редактируйте гайды
+            </p>
+          </div>
         <div className="flex gap-2">
           <Button
             variant="outline"

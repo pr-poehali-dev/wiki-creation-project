@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
@@ -10,6 +10,8 @@ interface AdminNavbarProps {
 
 const AdminNavbar = ({ email, onLogout }: AdminNavbarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isGuidesPage = location.pathname.includes("/admin/guides");
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -21,10 +23,18 @@ const AdminNavbar = ({ email, onLogout }: AdminNavbarProps) => {
             <Badge variant="secondary">{email}</Badge>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate("/admin/guides")}>
-              <Icon name="BookOpen" size={16} className="mr-2" />
-              Гайды
-            </Button>
+            {!isGuidesPage && (
+              <Button variant="outline" onClick={() => navigate("/admin/guides")}>
+                <Icon name="BookOpen" size={16} className="mr-2" />
+                Гайды
+              </Button>
+            )}
+            {isGuidesPage && (
+              <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Icon name="Package" size={16} className="mr-2" />
+                Предметы
+              </Button>
+            )}
             {email.toLowerCase() === "ad.alex1995@yandex.ru" && (
               <Button variant="outline" onClick={() => navigate("/admin/users")}>
                 <Icon name="Users" size={16} className="mr-2" />
