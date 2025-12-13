@@ -63,6 +63,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     POST - создать гайд или загрузить изображение (action=upload)
     PUT - обновить гайд
     DELETE - удалить гайд
+    Version: 1.1
     """
     method: str = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}

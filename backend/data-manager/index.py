@@ -91,6 +91,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Управление данными в S3
     GET ?type=items|guides - получить данные
     POST ?type=items|guides - обновить данные
+    Version: 1.1
     """
     method: str = event.get('httpMethod', 'GET')
     query_params = event.get('queryStringParameters') or {}
