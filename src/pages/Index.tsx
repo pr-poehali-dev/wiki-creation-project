@@ -165,10 +165,19 @@ const Index = () => {
             <Icon name="BookOpen" size={20} />
             <span className="text-lg font-medium">DevilRust Wiki</span>
           </div>
-          <p className="text-sm">
+          <p className="text-sm mb-4">
             Всего предметов в базе: {wikiItems.length} • Отображается:{" "}
             {filteredItems.length}
           </p>
+          <div className="text-xs space-y-1 max-w-2xl mx-auto">
+            <p>© 2025 Wiki DevilRust</p>
+            <p className="text-muted-foreground/80">
+              Данный сайт не связан с Facepunch Studios. Вся информация носит исключительно информационный характер.
+            </p>
+            <p className="text-muted-foreground/80">
+              Rust® является зарегистрированной торговой маркой Facepunch Studios Ltd.
+            </p>
+          </div>
         </footer>
       </div>
 
