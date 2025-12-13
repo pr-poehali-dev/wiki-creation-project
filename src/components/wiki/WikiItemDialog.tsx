@@ -69,7 +69,7 @@ const WikiItemDialog = ({
                             />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent className="z-[100]">
                           <p className="text-sm">Донат предмет</p>
                         </TooltipContent>
                       </Tooltip>
