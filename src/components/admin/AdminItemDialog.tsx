@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,7 @@ const AdminItemDialog = ({
   onImageUpload,
 }: AdminItemDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newTag, setNewTag] = useState("");
   
   if (!editingItem) return null;
 
@@ -51,6 +52,17 @@ const AdminItemDialog = ({
   
   const handleFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleAddTag = () => {
+    const value = newTag.trim();
+    if (value && !editingItem.tags.includes(value)) {
+      onItemChange({
+        ...editingItem,
+        tags: [...editingItem.tags, value],
+      });
+      setNewTag("");
+    }
   };
 
   return (
@@ -142,22 +154,25 @@ const AdminItemDialog = ({
             </div>
             <div className="flex gap-2">
               <Input
-                placeholder="Добавить тег"
+                placeholder="Добавить тег (нажмите Enter или +)"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    const input = e.currentTarget;
-                    const value = input.value.trim();
-                    if (value && !editingItem.tags.includes(value)) {
-                      onItemChange({
-                        ...editingItem,
-                        tags: [...editingItem.tags, value],
-                      });
-                      input.value = "";
-                    }
+                    handleAddTag();
                   }
                 }}
               />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleAddTag}
+                disabled={!newTag.trim()}
+              >
+                <Icon name="Plus" size={16} />
+              </Button>
             </div>
           </div>
 
