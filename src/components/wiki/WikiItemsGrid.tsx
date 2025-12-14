@@ -19,6 +19,7 @@ interface WikiItem {
 interface WikiItemsGridProps {
   wikiItems: WikiItem[];
   filteredItems: WikiItem[];
+  loading: boolean;
   favorites: string[];
   toggleFavorite: (itemId: string) => void;
   setSelectedItem: (item: WikiItem) => void;
@@ -27,10 +28,23 @@ interface WikiItemsGridProps {
 const WikiItemsGrid = ({
   wikiItems,
   filteredItems,
+  loading,
   favorites,
   toggleFavorite,
   setSelectedItem,
 }: WikiItemsGridProps) => {
+  if (loading) {
+    return (
+      <div className="text-center py-16 fade-in">
+        <Icon
+          name="Loader2"
+          size={64}
+          className="mx-auto text-primary mb-4 animate-spin"
+        />
+        <h3 className="text-2xl font-semibold mb-2">Загрузка предметов...</h3>
+      </div>
+    );
+  }
 
   if (wikiItems.length === 0) {
     return (

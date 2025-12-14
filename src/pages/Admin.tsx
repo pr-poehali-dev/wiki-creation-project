@@ -113,11 +113,11 @@ const Admin = () => {
       if (response.ok && data.success) {
         toast({
           title: "Успех",
-          description: isNew ? "Предмет создан. Перезагружаем страницу..." : "Предмет обновлен. Перезагружаем страницу...",
+          description: isNew ? "Предмет создан" : "Предмет обновлен",
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        setItems(updatedItems);
+        setIsDialogOpen(false);
+        setEditingItem(null);
       } else {
         toast({
           title: "Ошибка",
@@ -158,11 +158,9 @@ const Admin = () => {
       if (response.ok && data.success) {
         toast({
           title: "Успех",
-          description: "Предмет удален. Перезагружаем страницу...",
+          description: "Предмет удален",
         });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        setItems(updatedItems);
       } else {
         toast({
           title: "Ошибка",

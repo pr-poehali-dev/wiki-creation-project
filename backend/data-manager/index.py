@@ -1,54 +1,46 @@
 import json
 import os
+import boto3
 from typing import Dict, Any
 
-ITEMS_FILE_PATH = "../../src/data/wikiItems.json"
-GUIDES_FILE_PATH = "../../src/data/guides.json"
+ITEMS_FILE_KEY = "wiki/items.json"
+GUIDES_FILE_KEY = "wiki/guides.json"
 
-def load_default_items() -> Dict:
-    """Загрузка дефолтных предметов из файла"""
-    try:
-        file_path = os.path.join(os.path.dirname(__file__), ITEMS_FILE_PATH)
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {"предметы": []}
+def get_s3_client():
+    """Получение S3 клиента"""
+    return boto3.client('s3',
+        endpoint_url='https://bucket.poehali.dev',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    )
 
-def load_default_guides() -> Dict:
-    """Загрузка дефолтных гайдов из файла"""
+def load_from_s3(file_key: str) -> Dict | None:
+    """Загрузка данных из S3"""
     try:
-        file_path = os.path.join(os.path.dirname(__file__), GUIDES_FILE_PATH)
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        s3 = get_s3_client()
+        response = s3.get_object(Bucket='files', Key=file_key)
+        data = json.loads(response['Body'].read().decode('utf-8'))
+        return data
     except:
-        return {
-            "categories": [],
-            "difficulty": [
-                {"id": "easy", "name": "Легко", "color": "#22c55e"},
-                {"id": "medium", "name": "Средне", "color": "#eab308"},
-                {"id": "hard", "name": "Сложно", "color": "#ef4444"}
-            ],
-            "guides": [],
-            "pageSettings": {
-                "title": "Гайды DevilRust",
-                "subtitle": "Подробные пошаговые руководства по игре на сервере"
-            }
-        }
+        return None
+
+def save_to_s3(file_key: str, data: Dict) -> None:
+    """Сохранение данных в S3"""
+    s3 = get_s3_client()
+    s3.put_object(
+        Bucket='files',
+        Key=file_key,
+        Body=json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8'),
+        ContentType='application/json'
+    )
 
 def verify_admin_token(token: str, email: str) -> bool:
     """Проверка токена администратора"""
     return bool(token) and bool(email)
 
-def save_to_file(file_path: str, data: Dict) -> None:
-    """Сохранение данных в файл проекта"""
-    abs_file_path = os.path.join(os.path.dirname(__file__), file_path)
-    
-    with open(abs_file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Управление данными в файлах проекта
+    Управление данными в S3
     GET ?type=items|guides - получить данные
     POST ?type=items|guides - обновить данные
     """
@@ -70,11 +62,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     if data_type == 'items':
-        file_path = ITEMS_FILE_PATH
-        default_data = load_default_items()
+        file_key = ITEMS_FILE_KEY
     elif data_type == 'guides':
-        file_path = GUIDES_FILE_PATH
-        default_data = load_default_guides()
+        file_key = GUIDES_FILE_KEY
     else:
         return {
             'statusCode': 400,
@@ -84,12 +74,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     if method == 'GET':
-        try:
-            abs_file_path = os.path.join(os.path.dirname(__file__), file_path)
-            with open(abs_file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except:
-            data = default_data
+        data = load_from_s3(file_key)
+        
+        if data is None:
+            if data_type == 'items':
+                data = {"предметы": []}
+            else:
+                data = {
+                    "categories": [],
+                    "difficulty": [
+                        {"id": "easy", "name": "Легко", "color": "#22c55e"},
+                        {"id": "medium", "name": "Средне", "color": "#eab308"},
+                        {"id": "hard", "name": "Сложно", "color": "#ef4444"}
+                    ],
+                    "guides": [],
+                    "pageSettings": {
+                        "title": "Гайды DevilRust",
+                        "subtitle": "Подробные пошаговые руководства по игре на сервере"
+                    }
+                }
         
         return {
             'statusCode': 200,
@@ -114,7 +117,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body_data = json.loads(event.get('body', '{}'))
         
         try:
-            save_to_file(file_path, body_data)
+            save_to_s3(file_key, body_data)
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
