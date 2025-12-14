@@ -6,6 +6,14 @@ from typing import Dict, Any
 ITEMS_FILE_KEY = "wiki/items.json"
 GUIDES_FILE_KEY = "wiki/guides.json"
 
+def load_default_items() -> Dict:
+    """Загрузка дефолтных предметов из файла"""
+    try:
+        with open('default_items.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return {"предметы": []}
+
 def verify_admin_token(token: str, email: str) -> bool:
     """Проверка токена администратора"""
     return bool(token) and bool(email)
@@ -68,7 +76,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Определяем файл и default данные
     if data_type == 'items':
         file_key = ITEMS_FILE_KEY
-        default_data = {"предметы": []}
+        default_data = load_default_items()
     elif data_type == 'guides':
         file_key = GUIDES_FILE_KEY
         default_data = {

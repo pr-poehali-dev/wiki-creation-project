@@ -44,23 +44,20 @@ const Index = () => {
     const loadItems = async () => {
       try {
         const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+        if (!response.ok) {
+          console.warn('Backend unavailable, using local data');
+          setLoading(false);
+          return;
+        }
+        
         const data = await response.json();
         const backendItems = data.предметы || data.items || [];
         
         if (backendItems.length > 0) {
-          const mergedItems = [...wikiDataFallback.предметы || []];
-          backendItems.forEach((backendItem: WikiItem) => {
-            const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
-            if (existingIndex >= 0) {
-              mergedItems[existingIndex] = backendItem;
-            } else {
-              mergedItems.push(backendItem);
-            }
-          });
-          setWikiItems(mergedItems);
+          setWikiItems(backendItems);
         }
       } catch (error) {
-        console.error('Failed to load items from backend, using default data', error);
+        console.error('Failed to load items from backend, using local data', error);
       } finally {
         setLoading(false);
       }
@@ -76,20 +73,16 @@ const Index = () => {
     setLoading(true);
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+      if (!response.ok) {
+        setLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       const backendItems = data.предметы || data.items || [];
       
       if (backendItems.length > 0) {
-        const mergedItems = [...wikiDataFallback.предметы || []];
-        backendItems.forEach((backendItem: WikiItem) => {
-          const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
-          if (existingIndex >= 0) {
-            mergedItems[existingIndex] = backendItem;
-          } else {
-            mergedItems.push(backendItem);
-          }
-        });
-        setWikiItems(mergedItems);
+        setWikiItems(backendItems);
       }
     } catch (error) {
       console.error('Failed to refresh items', error);

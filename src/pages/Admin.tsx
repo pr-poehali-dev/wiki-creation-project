@@ -43,23 +43,19 @@ const Admin = () => {
   const loadItems = async () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
+      if (!response.ok) {
+        console.warn('Backend unavailable, using local data');
+        return;
+      }
+      
       const data = await response.json();
       const backendItems = data.предметы || data.items || [];
       
       if (backendItems.length > 0) {
-        const mergedItems = [...wikiItemsData.предметы || []];
-        backendItems.forEach((backendItem: WikiItem) => {
-          const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
-          if (existingIndex >= 0) {
-            mergedItems[existingIndex] = backendItem;
-          } else {
-            mergedItems.push(backendItem);
-          }
-        });
-        setItems(mergedItems);
+        setItems(backendItems);
       }
     } catch (error) {
-      console.error('Failed to load items from backend, using default data', error);
+      console.error('Failed to load items from backend, using local data', error);
     }
   };
 
@@ -206,7 +202,7 @@ const Admin = () => {
           body: JSON.stringify({
             image: base64Data,
             filename: file.name,
-            folder: "wiki-items",
+            folder: "wiki",
           }),
         });
 
