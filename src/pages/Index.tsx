@@ -1,14 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
-import { API_URLS } from '@/config/api';
-import wikiDataFallback from '@/data/wikiItems.json';
+import wikiData from '@/data/wikiItems.json';
 import WikiNavbar from "@/components/wiki/WikiNavbar";
 import WikiSearchFilters from "@/components/wiki/WikiSearchFilters";
 import WikiItemsGrid from "@/components/wiki/WikiItemsGrid";
 import WikiItemDialog from "@/components/wiki/WikiItemDialog";
-
-const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 
 interface WikiItem {
   id: string;
@@ -24,8 +21,7 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>(wikiDataFallback.предметы || []);
-  const [loading, setLoading] = useState(true);
+  const [wikiItems] = useState<WikiItem[]>(wikiData.предметы || []);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem("favoriteItems");
@@ -40,55 +36,8 @@ const Index = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
-        if (!response.ok) {
-          console.warn('Backend unavailable, using local data');
-          setLoading(false);
-          return;
-        }
-        
-        const data = await response.json();
-        const backendItems = data.предметы || data.items || [];
-        
-        if (backendItems.length > 0) {
-          setWikiItems(backendItems);
-        }
-      } catch (error) {
-        console.error('Failed to load items from backend, using local data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadItems();
-  }, []);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const refreshItems = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
-      if (!response.ok) {
-        setLoading(false);
-        return;
-      }
-      
-      const data = await response.json();
-      const backendItems = data.предметы || data.items || [];
-      
-      if (backendItems.length > 0) {
-        setWikiItems(backendItems);
-      }
-    } catch (error) {
-      console.error('Failed to refresh items', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const allTags = useMemo(() => {
@@ -147,8 +96,6 @@ const Index = () => {
       <WikiNavbar
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        loading={loading}
-        refreshItems={refreshItems}
       />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -172,7 +119,6 @@ const Index = () => {
         <WikiItemsGrid
           wikiItems={wikiItems}
           filteredItems={filteredItems}
-          loading={loading}
           favorites={favorites}
           toggleFavorite={toggleFavorite}
           setSelectedItem={setSelectedItem}

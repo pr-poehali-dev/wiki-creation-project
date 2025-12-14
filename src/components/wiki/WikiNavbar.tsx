@@ -5,15 +5,11 @@ import Icon from "@/components/ui/icon";
 interface WikiNavbarProps {
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
-  loading: boolean;
-  refreshItems: () => void;
 }
 
 const WikiNavbar = ({
   mobileMenuOpen,
   setMobileMenuOpen,
-  loading,
-  refreshItems,
 }: WikiNavbarProps) => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -60,14 +56,6 @@ const WikiNavbar = ({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <Icon name={mobileMenuOpen ? "X" : "Menu"} size={20} />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshItems}
-              disabled={loading}
-            >
-              <Icon name={loading ? "Loader2" : "RefreshCw"} size={16} className={loading ? "animate-spin" : ""} />
             </Button>
             <Button
               variant="default"
