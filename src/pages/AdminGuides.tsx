@@ -26,6 +26,8 @@ import {
 import { API_URLS } from "@/config/api";
 import guidesData from "@/data/guides.json";
 import AdminNavbar from "@/components/admin/AdminNavbar";
+import AdminOnlineUsers from "@/components/admin/AdminOnlineUsers";
+import { useAdminActivity, sendVisitEvent } from "@/hooks/useAdminActivity";
 
 const GUIDES_URL = API_URLS.GUIDES;
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
@@ -81,6 +83,8 @@ const AdminGuides = () => {
   const [email, setEmail] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  useAdminActivity(email, localStorage.getItem("adminNickname") || email);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -509,7 +513,7 @@ const AdminGuides = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <AdminNavbar email={email} onLogout={handleLogout} />
       
       <div className="container mx-auto p-6">
@@ -1050,6 +1054,8 @@ const AdminGuides = () => {
         </DialogContent>
       </Dialog>
       </div>
+      
+      <AdminOnlineUsers />
     </div>
   );
 };

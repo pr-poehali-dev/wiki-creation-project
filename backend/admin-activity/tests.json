@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Get online users",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Update user activity - heartbeat",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "nickname": "TestUser",
+        "action": "heartbeat"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    },
+    {
+      "name": "Update user activity - login",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "nickname": "TestUser",
+        "action": "login"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    }
+  ]
+}

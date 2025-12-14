@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import { sendVisitEvent } from "@/hooks/useAdminActivity";
 
 interface AdminNavbarProps {
   email: string;
@@ -12,6 +13,12 @@ const AdminNavbar = ({ email, onLogout }: AdminNavbarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isGuidesPage = location.pathname.includes("/admin/guides");
+  
+  const handleNavigate = (path: string) => {
+    const nickname = localStorage.getItem("adminNickname") || email;
+    sendVisitEvent(email, nickname);
+    navigate(path);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -24,24 +31,24 @@ const AdminNavbar = ({ email, onLogout }: AdminNavbarProps) => {
           </div>
           <div className="flex items-center gap-2">
             {!isGuidesPage && (
-              <Button variant="outline" onClick={() => navigate("/admin/guides")}>
+              <Button variant="outline" onClick={() => handleNavigate("/admin/guides")}>
                 <Icon name="BookOpen" size={16} className="mr-2" />
                 Гайды
               </Button>
             )}
             {isGuidesPage && (
-              <Button variant="outline" onClick={() => navigate("/admin")}>
+              <Button variant="outline" onClick={() => handleNavigate("/admin")}>
                 <Icon name="Package" size={16} className="mr-2" />
                 Предметы
               </Button>
             )}
             {email.toLowerCase() === "ad.alex1995@yandex.ru" && (
-              <Button variant="outline" onClick={() => navigate("/admin/users")}>
+              <Button variant="outline" onClick={() => handleNavigate("/admin/users")}>
                 <Icon name="Users" size={16} className="mr-2" />
                 Пользователи
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate("/")}>
+            <Button variant="outline" onClick={() => handleNavigate("/")}>
               <Icon name="Home" size={16} className="mr-2" />
               На главную
             </Button>

@@ -6,6 +6,8 @@ import AdminUsersHeader from "@/components/admin-users/AdminUsersHeader";
 import AdminUsersTable from "@/components/admin-users/AdminUsersTable";
 import UserDialog from "@/components/admin-users/UserDialog";
 import ProfileDialog from "@/components/admin-users/ProfileDialog";
+import AdminOnlineUsers from "@/components/admin/AdminOnlineUsers";
+import { useAdminActivity } from "@/hooks/useAdminActivity";
 
 const AUTH_URL = API_URLS.AUTH;
 const SUPER_ADMIN_EMAIL = "ad.alex1995@yandex.ru";
@@ -31,6 +33,11 @@ const AdminUsers = () => {
   const [profilePassword, setProfilePassword] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  useAdminActivity(
+    localStorage.getItem("adminEmail") || "",
+    localStorage.getItem("adminNickname") || localStorage.getItem("adminEmail") || ""
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -320,7 +327,7 @@ const AdminUsers = () => {
   const isSuperAdmin = currentUser?.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 p-8 pb-24">
       <div className="max-w-7xl mx-auto">
         <AdminUsersHeader
           currentUser={currentUser}
@@ -361,6 +368,8 @@ const AdminUsers = () => {
           onPasswordChange={setProfilePassword}
         />
       </div>
+      
+      <AdminOnlineUsers />
     </div>
   );
 };

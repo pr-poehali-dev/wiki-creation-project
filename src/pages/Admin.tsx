@@ -6,6 +6,8 @@ import AdminLogin from "@/components/admin/AdminLogin";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import AdminItemDialog from "@/components/admin/AdminItemDialog";
 import AdminItemsList from "@/components/admin/AdminItemsList";
+import AdminOnlineUsers from "@/components/admin/AdminOnlineUsers";
+import { useAdminActivity } from "@/hooks/useAdminActivity";
 import wikiItemsData from '@/data/wikiItems.json';
 
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
@@ -29,6 +31,8 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  useAdminActivity(email, localStorage.getItem("adminNickname") || email);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -275,7 +279,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <AdminNavbar email={email} onLogout={handleLogout} />
       
       <AdminItemsList
@@ -294,6 +298,8 @@ const Admin = () => {
         onItemChange={setEditingItem}
         onImageUpload={handleImageUpload}
       />
+      
+      <AdminOnlineUsers />
     </div>
   );
 };
