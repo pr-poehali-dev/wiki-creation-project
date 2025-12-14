@@ -23,7 +23,7 @@ interface WikiItem {
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("");
-  const [items, setItems] = useState<WikiItem[]>(wikiItemsData.предметы || []);
+  const [items, setItems] = useState<WikiItem[]>([]);
   const [editingItem, setEditingItem] = useState<WikiItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -44,18 +44,17 @@ const Admin = () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
       if (!response.ok) {
-        console.warn('Backend unavailable, using local data');
+        console.warn('Backend unavailable, loading local fallback');
+        setItems(wikiItemsData.предметы || []);
         return;
       }
       
       const data = await response.json();
       const backendItems = data.предметы || data.items || [];
-      
-      if (backendItems.length > 0) {
-        setItems(backendItems);
-      }
+      setItems(backendItems);
     } catch (error) {
-      console.error('Failed to load items from backend, using local data', error);
+      console.error('Failed to load items from backend, loading local fallback', error);
+      setItems(wikiItemsData.предметы || []);
     }
   };
 

@@ -24,7 +24,7 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>(wikiDataFallback.предметы || []);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -47,12 +47,13 @@ const Index = () => {
         if (response.ok) {
           const data = await response.json();
           const items = data.предметы || data.items || [];
-          if (items.length > 0) {
-            setWikiItems(items);
-          }
+          setWikiItems(items);
+        } else {
+          setWikiItems(wikiDataFallback.предметы || []);
         }
       } catch (error) {
         console.log('Using local fallback data');
+        setWikiItems(wikiDataFallback.предметы || []);
       } finally {
         setLoading(false);
       }
