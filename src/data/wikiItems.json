@@ -167,6 +167,14 @@
       "description": "Золотой лутбокс. Доступен только донаторам. Содержит редкие и ценные предметы с повышенным шансом.",
       "tags": ["Лутбокс", "Донат", "Редкость"],
       "isDonateItem": true
+    },
+    {
+      "id": "22",
+      "name": "Золотой лутбокс2",
+      "image": "https://cdn.poehali.dev/projects/ru-central1-c-ccsk7vk4pb9p5fndqhfb-zuvxfmub/bucket/wiki/lootbox_golden.png",
+      "description": "Золотой лутбокс. Доступен только донаторам. Содержит редкие и ценные предметы с повышенным шансом.",
+      "tags": ["Лутбокс", "Донат", "Редкость"],
+      "isDonateItem": true
     }
   ]
 }
