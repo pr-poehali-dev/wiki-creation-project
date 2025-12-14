@@ -93,6 +93,18 @@ const AdminGuides = () => {
     loadGuides();
   }, []);
 
+  // Автосинхронизация каждые 5 секунд
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
+    
+    const interval = setInterval(() => {
+      loadGuides();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const loadGuides = async () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=guides`);

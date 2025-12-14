@@ -40,6 +40,17 @@ const Admin = () => {
     }
   }, []);
 
+  // Автосинхронизация каждые 5 секунд
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const interval = setInterval(() => {
+      loadItems();
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   const loadItems = async () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
