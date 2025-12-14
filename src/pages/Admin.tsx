@@ -23,7 +23,7 @@ interface WikiItem {
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState("");
-  const [items, setItems] = useState<WikiItem[]>([]);
+  const [items, setItems] = useState<WikiItem[]>(wikiItemsData.предметы || []);
   const [editingItem, setEditingItem] = useState<WikiItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -44,10 +44,22 @@ const Admin = () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
       const data = await response.json();
-      setItems(data.предметы || data.items || []);
+      const backendItems = data.предметы || data.items || [];
+      
+      if (backendItems.length > 0) {
+        const mergedItems = [...wikiItemsData.предметы || []];
+        backendItems.forEach((backendItem: WikiItem) => {
+          const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
+          if (existingIndex >= 0) {
+            mergedItems[existingIndex] = backendItem;
+          } else {
+            mergedItems.push(backendItem);
+          }
+        });
+        setItems(mergedItems);
+      }
     } catch (error) {
-      console.error('Failed to load items', error);
-      setItems(wikiItemsData.предметы || []);
+      console.error('Failed to load items from backend, using default data', error);
     }
   };
 

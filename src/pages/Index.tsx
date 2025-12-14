@@ -24,7 +24,7 @@ const Index = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedItem, setSelectedItem] = useState<WikiItem | null>(null);
-  const [wikiItems, setWikiItems] = useState<WikiItem[]>([]);
+  const [wikiItems, setWikiItems] = useState<WikiItem[]>(wikiDataFallback.предметы || []);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -45,10 +45,22 @@ const Index = () => {
       try {
         const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
         const data = await response.json();
-        setWikiItems(data.предметы || wikiDataFallback.предметы || []);
+        const backendItems = data.предметы || data.items || [];
+        
+        if (backendItems.length > 0) {
+          const mergedItems = [...wikiDataFallback.предметы || []];
+          backendItems.forEach((backendItem: WikiItem) => {
+            const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
+            if (existingIndex >= 0) {
+              mergedItems[existingIndex] = backendItem;
+            } else {
+              mergedItems.push(backendItem);
+            }
+          });
+          setWikiItems(mergedItems);
+        }
       } catch (error) {
-        console.error('Failed to load items', error);
-        setWikiItems(wikiDataFallback.предметы || []);
+        console.error('Failed to load items from backend, using default data', error);
       } finally {
         setLoading(false);
       }
@@ -65,7 +77,20 @@ const Index = () => {
     try {
       const response = await fetch(`${DATA_MANAGER_URL}?type=items`);
       const data = await response.json();
-      setWikiItems(data.предметы || wikiDataFallback.предметы || []);
+      const backendItems = data.предметы || data.items || [];
+      
+      if (backendItems.length > 0) {
+        const mergedItems = [...wikiDataFallback.предметы || []];
+        backendItems.forEach((backendItem: WikiItem) => {
+          const existingIndex = mergedItems.findIndex(item => item.id === backendItem.id);
+          if (existingIndex >= 0) {
+            mergedItems[existingIndex] = backendItem;
+          } else {
+            mergedItems.push(backendItem);
+          }
+        });
+        setWikiItems(mergedItems);
+      }
     } catch (error) {
       console.error('Failed to refresh items', error);
     } finally {
