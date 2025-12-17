@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { API_URLS } from "@/config/api";
 import guidesData from "@/data/guides.json";
 import AdminNavbar from "@/components/admin/AdminNavbar";
@@ -81,6 +82,7 @@ const AdminGuides = () => {
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
   const [isDifficultiesDialogOpen, setIsDifficultiesDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [email, setEmail] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -249,13 +251,23 @@ const AdminGuides = () => {
     const adminEmail = localStorage.getItem("adminEmail");
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       const reader = new FileReader();
+      
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 30);
+          setUploadProgress(progress);
+        }
+      };
+      
       reader.readAsDataURL(file);
 
       reader.onload = async () => {
         const base64Data = reader.result as string;
+        setUploadProgress(40);
 
         const response = await fetch(IMAGE_PROCESSOR_URL, {
           method: "POST",
@@ -271,7 +283,9 @@ const AdminGuides = () => {
           }),
         });
 
+        setUploadProgress(80);
         const data = await response.json();
+        setUploadProgress(100);
 
         if (response.ok && data.success) {
           if (editingGuide) {
@@ -292,7 +306,11 @@ const AdminGuides = () => {
             variant: "destructive",
           });
         }
-        setUploading(false);
+        
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(0);
+        }, 500);
       };
 
       reader.onerror = () => {
@@ -845,26 +863,38 @@ const AdminGuides = () => {
                           <div className="flex gap-2">
                             <div className="flex-1">
                               <Label>Изображение</Label>
-                              <div className="flex gap-2">
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleImageUpload(file, index);
-                                  }}
-                                  disabled={uploading}
-                                />
-                                {step.image && (
-                                  <a
-                                    href={step.image}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button type="button" variant="outline" size="sm">
-                                      <Icon name="Eye" className="h-4 w-4" />
-                                    </Button>
-                                  </a>
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(file, index);
+                                    }}
+                                    disabled={uploading}
+                                  />
+                                  {step.image && (
+                                    <a
+                                      href={step.image}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <Button type="button" variant="outline" size="sm">
+                                        <Icon name="Eye" className="h-4 w-4" />
+                                      </Button>
+                                    </a>
+                                  )}
+                                </div>
+                                {uploading && (
+                                  <div className="space-y-1">
+                                    <Progress value={uploadProgress} className="h-1" />
+                                    <p className="text-xs text-muted-foreground">
+                                      {uploadProgress < 40 && "Чтение..."}
+                                      {uploadProgress >= 40 && uploadProgress < 80 && "Обработка..."}
+                                      {uploadProgress >= 80 && "Загрузка..."}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>

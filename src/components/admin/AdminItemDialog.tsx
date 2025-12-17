@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 
 interface WikiItem {
   id: string;
@@ -28,6 +29,7 @@ interface AdminItemDialogProps {
   isOpen: boolean;
   editingItem: WikiItem | null;
   uploading: boolean;
+  uploadProgress?: number;
   onClose: () => void;
   onSave: () => void;
   onItemChange: (item: WikiItem) => void;
@@ -38,6 +40,7 @@ const AdminItemDialog = ({
   isOpen,
   editingItem,
   uploading,
+  uploadProgress = 0,
   onClose,
   onSave,
   onItemChange,
@@ -122,6 +125,17 @@ const AdminItemDialog = ({
               <Icon name="Upload" size={16} className="mr-2" />
               {uploading ? "Загрузка..." : "Выбрать изображение"}
             </Button>
+            {uploading && (
+              <div className="mt-2 space-y-2">
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">
+                  {uploadProgress < 40 && "Чтение файла..."}
+                  {uploadProgress >= 40 && uploadProgress < 80 && "Обработка и наложение водяного знака..."}
+                  {uploadProgress >= 80 && uploadProgress < 100 && "Загрузка на сервер..."}
+                  {uploadProgress === 100 && "Готово!"}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>

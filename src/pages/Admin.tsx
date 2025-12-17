@@ -29,6 +29,7 @@ const Admin = () => {
   const [editingItem, setEditingItem] = useState<WikiItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -198,13 +199,23 @@ const Admin = () => {
     const adminEmail = localStorage.getItem("adminEmail");
 
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       const reader = new FileReader();
+      
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 30);
+          setUploadProgress(progress);
+        }
+      };
+      
       reader.readAsDataURL(file);
       
       reader.onload = async () => {
         const base64Data = reader.result as string;
+        setUploadProgress(40);
 
         const response = await fetch(IMAGE_PROCESSOR_URL, {
           method: "POST",
@@ -220,7 +231,9 @@ const Admin = () => {
           }),
         });
 
+        setUploadProgress(80);
         const data = await response.json();
+        setUploadProgress(100);
 
         if (response.ok && data.success) {
           if (editingItem) {
@@ -237,7 +250,11 @@ const Admin = () => {
             variant: "destructive",
           });
         }
-        setUploading(false);
+        
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(0);
+        }, 500);
       };
 
       reader.onerror = () => {
@@ -293,6 +310,7 @@ const Admin = () => {
         isOpen={isDialogOpen}
         editingItem={editingItem}
         uploading={uploading}
+        uploadProgress={uploadProgress}
         onClose={() => setIsDialogOpen(false)}
         onSave={handleSaveItem}
         onItemChange={setEditingItem}
