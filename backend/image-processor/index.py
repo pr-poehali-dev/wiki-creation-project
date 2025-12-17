@@ -18,8 +18,10 @@ def download_watermark() -> Image.Image:
 
 def apply_watermark(image: Image.Image, watermark: Image.Image, max_size: int = 120) -> Image.Image:
     """Наложить водяной знак в правый нижний угол"""
-    # Работаем в RGB режиме
+    # Конвертируем изображение в RGB если нужно
     if image.mode in ('RGBA', 'LA', 'P'):
+        img_copy = image.convert('RGB')
+    elif image.mode != 'RGB':
         img_copy = image.convert('RGB')
     else:
         img_copy = image.copy()
@@ -45,16 +47,10 @@ def apply_watermark(image: Image.Image, watermark: Image.Image, max_size: int = 
         img_copy.height - watermark_resized.height - 12
     )
     
-    # Создаем временное изображение для наложения
-    watermark_layer = Image.new('RGBA', img_copy.size, (0, 0, 0, 0))
-    watermark_layer.paste(watermark_resized, position)
+    # Накладываем водяной знак используя paste с маской альфа-канала
+    img_copy.paste(watermark_resized, position, watermark_resized)
     
-    # Конвертируем основное изображение в RGBA для наложения
-    img_rgba = img_copy.convert('RGBA')
-    img_rgba = Image.alpha_composite(img_rgba, watermark_layer)
-    
-    # Конвертируем обратно в RGB
-    return img_rgba.convert('RGB')
+    return img_copy
 
 def compress_image(image: Image.Image, max_width: int = 1200, quality: int = 85) -> Image.Image:
     """Сжать изображение до разумного размера"""
