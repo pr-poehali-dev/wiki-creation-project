@@ -96,11 +96,11 @@ const WikiItemDialog = ({
             </DialogHeader>
 
             <div className="space-y-6">
-              <div className="bg-muted/30 rounded-lg p-6">
+              <div className="bg-muted/30 rounded-lg p-6 flex items-center justify-center">
                 <WatermarkedImage
                   src={selectedItem.image}
                   alt={selectedItem.name}
-                  className="max-h-64 object-contain"
+                  className="max-h-64 max-w-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";
