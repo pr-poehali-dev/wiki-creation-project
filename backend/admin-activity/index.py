@@ -2,12 +2,35 @@ import json
 import os
 import psycopg2
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+# In-memory кэш для GET-запросов
+_cache: Dict[str, Any] = {
+    'data': None,
+    'timestamp': None
+}
+CACHE_TTL_SECONDS = 10
+
+def get_cached_users() -> Optional[Dict[str, Any]]:
+    """Получить данные из кэша, если они актуальны"""
+    if _cache['data'] is None or _cache['timestamp'] is None:
+        return None
+    
+    cache_age = (datetime.now() - _cache['timestamp']).total_seconds()
+    if cache_age > CACHE_TTL_SECONDS:
+        return None
+    
+    return _cache['data']
+
+def set_cache(data: Dict[str, Any]) -> None:
+    """Сохранить данные в кэш"""
+    _cache['data'] = data
+    _cache['timestamp'] = datetime.now()
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Управление онлайн-активностью администраторов
-    Методы: GET - список онлайн, POST - обновление активности
+    Управление онлайн-активностью администраторов с кэшированием
+    Методы: GET - список онлайн (кэш 10 сек), POST - обновление активности
     '''
     method: str = event.get('httpMethod', 'GET')
     
@@ -24,15 +47,69 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        conn = psycopg2.connect(os.environ['DATABASE_URL'])
-        cur = conn.cursor()
+        if method == 'GET':
+            # Проверяем кэш перед запросом к БД
+            cached_data = get_cached_users()
+            if cached_data is not None:
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'X-Cache': 'HIT'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps(cached_data)
+                }
+            
+            # Кэш пустой или устарел - запрашиваем из БД
+            conn = psycopg2.connect(os.environ['DATABASE_URL'])
+            cur = conn.cursor()
+            
+            online_threshold = datetime.now() - timedelta(seconds=60)
+            
+            cur.execute('''
+                SELECT email, nickname, last_seen, login_count, visit_count
+                FROM admin_activity
+                WHERE last_seen > %s
+                ORDER BY last_seen DESC
+            ''', (online_threshold,))
+            
+            users = []
+            for row in cur.fetchall():
+                users.append({
+                    'email': row[0],
+                    'nickname': row[1],
+                    'lastSeen': row[2].isoformat(),
+                    'loginCount': row[3],
+                    'visitCount': row[4]
+                })
+            
+            cur.close()
+            conn.close()
+            
+            response_data = {'users': users}
+            set_cache(response_data)
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'X-Cache': 'MISS'
+                },
+                'isBase64Encoded': False,
+                'body': json.dumps(response_data)
+            }
         
-        if method == 'POST':
-            # Обновление активности пользователя
+        elif method == 'POST':
+            conn = psycopg2.connect(os.environ['DATABASE_URL'])
+            cur = conn.cursor()
+            
             body_data = json.loads(event.get('body', '{}'))
             email = body_data.get('email', '')
             nickname = body_data.get('nickname', email)
-            action = body_data.get('action', 'heartbeat')  # heartbeat, login, visit
+            action = body_data.get('action', 'heartbeat')
             
             if not email:
                 return {
@@ -41,7 +118,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'Email required'})
                 }
             
-            # Обновление или создание записи
             if action == 'login':
                 cur.execute('''
                     INSERT INTO admin_activity (email, nickname, last_seen, login_count, visit_count)
@@ -76,42 +152,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cur.close()
             conn.close()
             
+            # Инвалидируем кэш после изменения данных
+            _cache['data'] = None
+            _cache['timestamp'] = None
+            
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
                 'body': json.dumps({'success': True})
-            }
-        
-        elif method == 'GET':
-            # Получение списка онлайн пользователей (активность за последние 60 секунд)
-            online_threshold = datetime.now() - timedelta(seconds=60)
-            
-            cur.execute('''
-                SELECT email, nickname, last_seen, login_count, visit_count
-                FROM admin_activity
-                WHERE last_seen > %s
-                ORDER BY last_seen DESC
-            ''', (online_threshold,))
-            
-            users = []
-            for row in cur.fetchall():
-                users.append({
-                    'email': row[0],
-                    'nickname': row[1],
-                    'lastSeen': row[2].isoformat(),
-                    'loginCount': row[3],
-                    'visitCount': row[4]
-                })
-            
-            cur.close()
-            conn.close()
-            
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'isBase64Encoded': False,
-                'body': json.dumps({'users': users})
             }
         
         else:
