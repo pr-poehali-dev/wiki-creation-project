@@ -20,13 +20,13 @@ const WatermarkedImage = ({ src, alt, className = "", onError }: WatermarkedImag
   };
 
   return (
-    <div className={`relative ${className}`} style={{ position: "relative" }}>
+    <div className={`relative ${className}`} style={{ position: "relative", maxWidth: "100%", maxHeight: "100%", overflow: "hidden" }}>
       <img
         src={src}
         alt={alt}
         className=""
         onError={handleError}
-        style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", objectFit: "contain" }}
+        style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "100%", height: "100%", objectFit: "contain" }}
       />
       {!imageError && (
         <img
