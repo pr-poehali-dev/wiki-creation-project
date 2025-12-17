@@ -16,9 +16,17 @@ def download_watermark() -> Image.Image:
         watermark_data = response.read()
     return Image.open(io.BytesIO(watermark_data))
 
-def apply_watermark(image: Image.Image, watermark: Image.Image, max_size: int = 80) -> Image.Image:
+def apply_watermark(image: Image.Image, watermark: Image.Image, max_size: int = 120) -> Image.Image:
     """Наложить водяной знак в правый нижний угол"""
-    img_copy = image.copy().convert('RGBA')
+    # Работаем в RGB режиме
+    if image.mode in ('RGBA', 'LA', 'P'):
+        img_copy = image.convert('RGB')
+    else:
+        img_copy = image.copy()
+    
+    # Конвертируем водяной знак в RGBA если нужно
+    if watermark.mode != 'RGBA':
+        watermark = watermark.convert('RGBA')
     
     # Масштабируем водяной знак
     wm_ratio = watermark.width / watermark.height
@@ -26,28 +34,27 @@ def apply_watermark(image: Image.Image, watermark: Image.Image, max_size: int = 
     wm_height = int(wm_width / wm_ratio)
     watermark_resized = watermark.resize((wm_width, wm_height), Image.Resampling.LANCZOS)
     
-    # Применяем прозрачность 70%
-    if watermark_resized.mode != 'RGBA':
-        watermark_resized = watermark_resized.convert('RGBA')
-    
+    # Применяем прозрачность 60%
     alpha = watermark_resized.split()[3]
-    alpha = alpha.point(lambda p: int(p * 0.7))
+    alpha = alpha.point(lambda p: int(p * 0.6))
     watermark_resized.putalpha(alpha)
     
-    # Позиция в правом нижнем углу с отступом 8px
+    # Позиция в правом нижнем углу с отступом 12px
     position = (
-        img_copy.width - watermark_resized.width - 8,
-        img_copy.height - watermark_resized.height - 8
+        img_copy.width - watermark_resized.width - 12,
+        img_copy.height - watermark_resized.height - 12
     )
     
-    # Накладываем водяной знак
-    img_copy.paste(watermark_resized, position, watermark_resized)
+    # Создаем временное изображение для наложения
+    watermark_layer = Image.new('RGBA', img_copy.size, (0, 0, 0, 0))
+    watermark_layer.paste(watermark_resized, position)
     
-    # Конвертируем обратно в RGB если нужно
-    if image.mode == 'RGB':
-        img_copy = img_copy.convert('RGB')
+    # Конвертируем основное изображение в RGBA для наложения
+    img_rgba = img_copy.convert('RGBA')
+    img_rgba = Image.alpha_composite(img_rgba, watermark_layer)
     
-    return img_copy
+    # Конвертируем обратно в RGB
+    return img_rgba.convert('RGB')
 
 def compress_image(image: Image.Image, max_width: int = 1200, quality: int = 85) -> Image.Image:
     """Сжать изображение до разумного размера"""
@@ -109,12 +116,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # 2. Скачиваем и накладываем водяной знак
         watermark = download_watermark()
-        image = apply_watermark(image, watermark, max_size=80)
+        image = apply_watermark(image, watermark, max_size=120)
         
-        # 3. Конвертируем в JPEG для экономии места
+        # 3. Сохраняем в JPEG (уже в RGB после apply_watermark)
         output = io.BytesIO()
-        if image.mode in ('RGBA', 'LA', 'P'):
-            image = image.convert('RGB')
         image.save(output, format='JPEG', quality=85, optimize=True)
         output.seek(0)
         
