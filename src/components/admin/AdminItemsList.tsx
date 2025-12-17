@@ -34,7 +34,7 @@ const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListPro
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {items.map((item) => (
           <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="p-0">
@@ -42,7 +42,7 @@ const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListPro
                 <WatermarkedImage
                   src={item.image}
                   alt={item.name}
-                  className="h-48 object-cover"
+                  className="w-full aspect-square object-cover"
                 />
               )}
             </CardHeader>
