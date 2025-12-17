@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import WatermarkedImage from "@/components/ui/watermarked-image";
 
 interface WikiItem {
   id: string;
@@ -90,7 +89,7 @@ const AdminItemDialog = ({
             <Label>Изображение</Label>
             {editingItem.image && (
               <div className="mb-2">
-                <WatermarkedImage
+                <img
                   src={editingItem.image}
                   alt="Preview"
                   className="w-32 h-32 object-cover rounded-lg border border-border"

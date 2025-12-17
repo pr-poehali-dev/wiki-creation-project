@@ -31,6 +31,7 @@ import { useAdminActivity, sendVisitEvent } from "@/hooks/useAdminActivity";
 
 const GUIDES_URL = API_URLS.GUIDES;
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
+const IMAGE_PROCESSOR_URL = API_URLS.IMAGE_PROCESSOR;
 
 interface GuideStep {
   stepNumber: number;
@@ -256,7 +257,7 @@ const AdminGuides = () => {
       reader.onload = async () => {
         const base64Data = reader.result as string;
 
-        const response = await fetch(`${GUIDES_URL}?action=upload`, {
+        const response = await fetch(IMAGE_PROCESSOR_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -282,7 +283,7 @@ const AdminGuides = () => {
           }
           toast({
             title: "Успех",
-            description: "Изображение загружено",
+            description: "Изображение обработано и загружено",
           });
         } else {
           toast({

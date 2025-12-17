@@ -6,7 +6,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
-import WatermarkedImage from "@/components/ui/watermarked-image";
 
 interface WikiItem {
   id: string;
@@ -125,10 +124,10 @@ const WikiItemsGrid = ({
           )}
 
           <div className="aspect-square bg-muted/30 p-4">
-            <WatermarkedImage
+            <img
               src={item.image}
               alt={item.name}
-              className="object-contain transition-transform duration-300 group-hover:scale-110"
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "/placeholder.svg";

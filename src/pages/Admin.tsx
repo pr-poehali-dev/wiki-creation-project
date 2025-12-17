@@ -11,7 +11,7 @@ import { useAdminActivity } from "@/hooks/useAdminActivity";
 import wikiItemsData from '@/data/wikiItems.json';
 
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
-const GUIDES_URL = API_URLS.GUIDES;
+const IMAGE_PROCESSOR_URL = API_URLS.IMAGE_PROCESSOR;
 
 interface WikiItem {
   id: string;
@@ -206,7 +206,7 @@ const Admin = () => {
       reader.onload = async () => {
         const base64Data = reader.result as string;
 
-        const response = await fetch(`${GUIDES_URL}?action=upload`, {
+        const response = await fetch(IMAGE_PROCESSOR_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -228,7 +228,7 @@ const Admin = () => {
           }
           toast({
             title: "Успех",
-            description: "Изображение загружено",
+            description: "Изображение обработано и загружено",
           });
         } else {
           toast({

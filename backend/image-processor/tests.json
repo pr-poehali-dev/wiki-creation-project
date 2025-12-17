@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Upload image with watermark",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "filename": "test.png",
+        "folder": "test"
+      },
+      "expectedStatus": 200
+    }
+  ]
+}
