@@ -17,9 +17,11 @@ interface AdminItemsListProps {
   onEdit: (item: WikiItem) => void;
   onCreate: () => void;
   onDelete: (itemId: string) => void;
+  onReprocessImages?: () => void;
+  reprocessing?: boolean;
 }
 
-const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListProps) => {
+const AdminItemsList = ({ items, onEdit, onCreate, onDelete, onReprocessImages, reprocessing }: AdminItemsListProps) => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -27,10 +29,22 @@ const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListPro
           <h2 className="text-2xl font-bold">Управление предметами Wiki</h2>
           <p className="text-muted-foreground">Всего предметов: {items.length}</p>
         </div>
-        <Button onClick={onCreate}>
-          <Icon name="Plus" size={16} className="mr-2" />
-          Добавить предмет
-        </Button>
+        <div className="flex gap-2">
+          {onReprocessImages && (
+            <Button 
+              onClick={onReprocessImages} 
+              variant="outline"
+              disabled={reprocessing}
+            >
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              {reprocessing ? "Обработка..." : "Обновить водяные знаки"}
+            </Button>
+          )}
+          <Button onClick={onCreate}>
+            <Icon name="Plus" size={16} className="mr-2" />
+            Добавить предмет
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

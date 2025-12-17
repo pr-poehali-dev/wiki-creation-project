@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "Reprocess images endpoint",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

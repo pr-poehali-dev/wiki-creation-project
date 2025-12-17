@@ -12,6 +12,7 @@ import wikiItemsData from '@/data/wikiItems.json';
 
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 const IMAGE_PROCESSOR_URL = API_URLS.IMAGE_PROCESSOR;
+const REPROCESS_IMAGES_URL = API_URLS.REPROCESS_IMAGES;
 
 interface WikiItem {
   id: string;
@@ -30,6 +31,7 @@ const Admin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [reprocessing, setReprocessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -291,6 +293,57 @@ const Admin = () => {
     setIsDialogOpen(true);
   };
 
+  const handleReprocessImages = async () => {
+    const token = localStorage.getItem("adminToken");
+    const adminEmail = localStorage.getItem("adminEmail");
+
+    if (!token || !adminEmail) {
+      toast({
+        title: "Ошибка",
+        description: "Требуется авторизация",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setReprocessing(true);
+    
+    try {
+      const response = await fetch(REPROCESS_IMAGES_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": token,
+          "X-Admin-Email": adminEmail,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: "Успех",
+          description: `Обработано: ${data.processed} из ${data.total} изображений`,
+        });
+        loadItems();
+      } else {
+        toast({
+          title: "Ошибка",
+          description: data.error || "Не удалось переобработать изображения",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось связаться с сервером",
+        variant: "destructive",
+      });
+    } finally {
+      setReprocessing(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} toast={toast} />;
   }
@@ -304,6 +357,8 @@ const Admin = () => {
         onEdit={openEditDialog}
         onCreate={() => openEditDialog(null)}
         onDelete={handleDeleteItem}
+        onReprocessImages={handleReprocessImages}
+        reprocessing={reprocessing}
       />
 
       <AdminItemDialog
