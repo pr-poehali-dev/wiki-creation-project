@@ -24,9 +24,9 @@ const WatermarkedImage = ({ src, alt, className = "", onError }: WatermarkedImag
       <img
         src={src}
         alt={alt}
-        className="w-full h-full"
+        className=""
         onError={handleError}
-        style={{ display: "block", maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+        style={{ display: "block", maxWidth: "100%", maxHeight: "100%", width: "auto", height: "auto", objectFit: "contain" }}
       />
       {!imageError && (
         <img
