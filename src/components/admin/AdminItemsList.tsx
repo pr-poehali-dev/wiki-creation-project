@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import WatermarkedImage from "@/components/ui/watermarked-image";
 
 interface WikiItem {
   id: string;
@@ -38,10 +39,10 @@ const AdminItemsList = ({ items, onEdit, onCreate, onDelete }: AdminItemsListPro
           <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="p-0">
               {item.image && (
-                <img
+                <WatermarkedImage
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-48 object-cover"
+                  className="h-48 object-cover"
                 />
               )}
             </CardHeader>
