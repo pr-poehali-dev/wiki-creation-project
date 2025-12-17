@@ -124,11 +124,11 @@ const WikiItemsGrid = ({
             </TooltipProvider>
           )}
 
-          <div className="aspect-square bg-muted/30 p-4">
+          <div className="aspect-square bg-muted/30 overflow-hidden">
             <WatermarkedImage
               src={item.image}
               alt={item.name}
-              className="object-contain transition-transform duration-300 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "/placeholder.svg";
