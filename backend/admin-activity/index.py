@@ -84,8 +84,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         elif method == 'GET':
-            # Получение списка онлайн пользователей (активность за последние 30 секунд)
-            online_threshold = datetime.now() - timedelta(seconds=30)
+            # Получение списка онлайн пользователей (активность за последние 60 секунд)
+            online_threshold = datetime.now() - timedelta(seconds=60)
             
             cur.execute('''
                 SELECT email, nickname, last_seen, login_count, visit_count

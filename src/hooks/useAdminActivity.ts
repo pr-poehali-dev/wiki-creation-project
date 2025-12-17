@@ -44,7 +44,7 @@ export const useAdminActivity = (email: string, nickname: string) => {
     sendLoginEvent();
 
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 10000);
+    const interval = setInterval(sendHeartbeat, 30000);
 
     return () => clearInterval(interval);
   }, [email, nickname]);

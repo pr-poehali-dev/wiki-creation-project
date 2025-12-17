@@ -28,7 +28,7 @@ const AdminOnlineUsers = () => {
     };
 
     loadOnlineUsers();
-    const interval = setInterval(loadOnlineUsers, 5000);
+    const interval = setInterval(loadOnlineUsers, 15000);
 
     return () => clearInterval(interval);
   }, []);
