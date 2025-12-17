@@ -100,7 +100,7 @@ const WikiItemDialog = ({
                 <WatermarkedImage
                   src={selectedItem.image}
                   alt={selectedItem.name}
-                  className="max-h-64 max-w-full object-contain"
+                  className="max-h-32 max-w-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";
