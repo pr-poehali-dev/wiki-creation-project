@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Icon from "@/components/ui/icon";
+import WatermarkedImage from "@/components/ui/watermarked-image";
 
 interface WikiItem {
   id: string;
@@ -96,10 +97,10 @@ const WikiItemDialog = ({
 
             <div className="space-y-6">
               <div className="bg-muted/30 rounded-lg p-6">
-                <img
+                <WatermarkedImage
                   src={selectedItem.image}
                   alt={selectedItem.name}
-                  className="w-full max-h-64 object-contain"
+                  className="max-h-64 object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/placeholder.svg";

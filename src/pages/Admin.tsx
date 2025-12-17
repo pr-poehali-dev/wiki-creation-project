@@ -11,8 +11,7 @@ import { useAdminActivity } from "@/hooks/useAdminActivity";
 import wikiItemsData from '@/data/wikiItems.json';
 
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
-const IMAGE_PROCESSOR_URL = API_URLS.IMAGE_PROCESSOR;
-const REPROCESS_IMAGES_URL = API_URLS.REPROCESS_IMAGES;
+const GUIDES_URL = API_URLS.GUIDES;
 
 interface WikiItem {
   id: string;
@@ -30,8 +29,6 @@ const Admin = () => {
   const [editingItem, setEditingItem] = useState<WikiItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [reprocessing, setReprocessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -201,25 +198,15 @@ const Admin = () => {
     const adminEmail = localStorage.getItem("adminEmail");
 
     setUploading(true);
-    setUploadProgress(0);
 
     try {
       const reader = new FileReader();
-      
-      reader.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const progress = Math.round((e.loaded / e.total) * 30);
-          setUploadProgress(progress);
-        }
-      };
-      
       reader.readAsDataURL(file);
       
       reader.onload = async () => {
         const base64Data = reader.result as string;
-        setUploadProgress(40);
 
-        const response = await fetch(IMAGE_PROCESSOR_URL, {
+        const response = await fetch(`${GUIDES_URL}?action=upload`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -233,9 +220,7 @@ const Admin = () => {
           }),
         });
 
-        setUploadProgress(80);
         const data = await response.json();
-        setUploadProgress(100);
 
         if (response.ok && data.success) {
           if (editingItem) {
@@ -243,7 +228,7 @@ const Admin = () => {
           }
           toast({
             title: "Успех",
-            description: "Изображение обработано и загружено",
+            description: "Изображение загружено",
           });
         } else {
           toast({
@@ -252,11 +237,7 @@ const Admin = () => {
             variant: "destructive",
           });
         }
-        
-        setTimeout(() => {
-          setUploading(false);
-          setUploadProgress(0);
-        }, 500);
+        setUploading(false);
       };
 
       reader.onerror = () => {
@@ -293,57 +274,6 @@ const Admin = () => {
     setIsDialogOpen(true);
   };
 
-  const handleReprocessImages = async () => {
-    const token = localStorage.getItem("adminToken");
-    const adminEmail = localStorage.getItem("adminEmail");
-
-    if (!token || !adminEmail) {
-      toast({
-        title: "Ошибка",
-        description: "Требуется авторизация",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setReprocessing(true);
-    
-    try {
-      const response = await fetch(REPROCESS_IMAGES_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Admin-Token": token,
-          "X-Admin-Email": adminEmail,
-        },
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        toast({
-          title: "Успех",
-          description: `Обработано: ${data.processed} из ${data.total} изображений`,
-        });
-        loadItems();
-      } else {
-        toast({
-          title: "Ошибка",
-          description: data.error || "Не удалось переобработать изображения",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось связаться с сервером",
-        variant: "destructive",
-      });
-    } finally {
-      setReprocessing(false);
-    }
-  };
-
   if (!isAuthenticated) {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} toast={toast} />;
   }
@@ -357,15 +287,12 @@ const Admin = () => {
         onEdit={openEditDialog}
         onCreate={() => openEditDialog(null)}
         onDelete={handleDeleteItem}
-        onReprocessImages={handleReprocessImages}
-        reprocessing={reprocessing}
       />
 
       <AdminItemDialog
         isOpen={isDialogOpen}
         editingItem={editingItem}
         uploading={uploading}
-        uploadProgress={uploadProgress}
         onClose={() => setIsDialogOpen(false)}
         onSave={handleSaveItem}
         onItemChange={setEditingItem}

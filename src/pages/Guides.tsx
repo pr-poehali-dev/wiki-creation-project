@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { API_URLS } from '@/config/api';
 import guidesDataFallback from '@/data/guides.json';
+import WatermarkedImage from '@/components/ui/watermarked-image';
 
 const DATA_MANAGER_URL = API_URLS.DATA_MANAGER;
 
@@ -623,10 +624,10 @@ const Guides = () => {
                   )}
                   {step.image && !step.video && (
                     <div className="border-t border-border">
-                      <img 
+                      <WatermarkedImage 
                         src={step.image}
                         alt={step.title}
-                        className="w-full h-auto object-cover"
+                        className="h-auto object-cover"
                       />
                     </div>
                   )}
